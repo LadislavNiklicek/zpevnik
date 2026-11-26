@@ -600,12 +600,26 @@ const BASS_PRESETS = [
   ['1 5, | 1 3', 'Polka – střídavě kvinta / tercie', 'Polka (2/4)', 0, '2/4'],
   ['1 5, 1 >', 'Dechovka – osminy s přechodem', 'Polka (2/4)', 0, '2/4'],
   ['1 -', 'Polka – jen kořen na 1. dobu', 'Polka (2/4)', 0, '2/4'],
-  ['1 5, 5,', 'Valčík 3/4 (um-pa-pa)', 'Valčík'],
-  ['1 - 5,', 'Valčík 3/4 (kořen – kvinta)', 'Valčík'],
-  ['1 3 5', 'Valčík 3/4 – walking', 'Valčík'],
+  ['1 5, 5,', 'Valčík 3/4 (um-pa-pa)', 'Valčík', 0, '3/4'],
+  ['1 - 5,', 'Valčík 3/4 (kořen – kvinta)', 'Valčík', 0, '3/4'],
+  ['1 3 5', 'Valčík 3/4 – walking', 'Valčík', 0, '3/4'],
+  ['1 - - 5, - -', '6/8 – kořen, kvinta (houpavé)', '6/8 a 12/8', 0, '6/8'],
+  ['1 - 5, 1 - 5,', '6/8 – kořen, kvinta v osminách', '6/8 a 12/8', 0, '6/8'],
+  ['1 - 3 5 - 3', '6/8 – rozklad (irská, balada)', '6/8 a 12/8', 0, '6/8'],
+  ['1 - - 1 - >', '6/8 – kořen s přechodem', '6/8 a 12/8', 0, '6/8'],
+  ['1 - - 5, - - 1 - - 5, - -', '12/8 – pomalé blues, balada', '6/8 a 12/8', 0, '12/8'],
 ];
+const METERS = ['2/4', '3/4', '4/4', '2/2', '5/4', '6/8', '9/8', '12/8'];
+const METER_DEF = {'2/4': '1 5,', '3/4': '1 5, 5,', '4/4': '1 - 5, -', '2/2': '1 5,', '5/4': '1 - 5, - -', '6/8': '1 - - 5, - -', '9/8': '1 - - 5, - - 5, - -', '12/8': '1 - - 5, - - 1 - - 5, - -', '3/8': '1 5, 5,'};
+function meterOf(t) {
+  const m = String(t || '').trim().match(/^(\d+)\s*\/\s*(\d+)$/); const num = m ? +m[1] : 4, den = m ? +m[2] : 4;
+  const compound = den === 8 && num % 3 === 0 && num > 3; // 6/8, 9/8, 12/8 – doba = tečkovaná čtvrťová
+  return {num, den, compound, beats: compound ? num / 3 : num, key: m ? num + '/' + den : '4/4'};
+}
+// sedí vzor do taktu? (počet kroků dělí počet dílků taktu nebo naopak)
+function patternFits(pat, t) { const n = (pat.split('|')[0].trim().split(/\s+/).filter(Boolean)).length, g = meterOf(t).num; return n > 0 && (n % g === 0 || g % n === 0); }
 function bassPatternOf(p) {
-  return (p.meta.x_bass_pattern || (/^3\//.test(p.meta.time || '') ? '1 5, 5,' : /^2\//.test(p.meta.time || '') ? '1 5,' : '1 - 5, -')).trim();
+  return (p.meta.x_bass_pattern || METER_DEF[meterOf(p.meta.time).key] || '1 - 5, -').trim();
 }
 function bassPos(p, nearF, upright) {
   let best = null;
@@ -932,7 +946,7 @@ function bassPlay0(items, o) {
   };
   BA.raf = setTimeout(tick, 25);
 }
-function songBpb(p) { const m = String(p.meta.time || '').match(/^(\d+)\//); return m ? Math.max(1, Math.min(12, +m[1])) : 4; }
+function songBpb(p) { return Math.max(1, Math.min(12, meterOf(p.meta.time).beats)); }
 function songSwing(p) { return /^(1|ano|on|yes|true|swing)$/i.test(String(p.meta.x_swing || '').trim()); }
 function songBpm(p) { return parseInt(p.meta.tempo) || 90; }
 // kurzor nad právě hraným tónem v zobrazeném tabu
@@ -954,7 +968,7 @@ function bassCursor(src, ev) {
 }
 function playOpts(song, extra) {
   const p = P(song), st = S();
-  return Object.assign({bpm: songBpm(p), bpb: songBpb(p), upright: st.bassSound !== 'electric', click: st.bassClick, swing: songSwing(p)}, extra);
+  return Object.assign({bpm: songBpm(p), bpb: songBpb(p), upright: st.bassSound !== 'electric', click: st.bassClick, swing: songSwing(p) && !meterOf(p.meta.time).compound}, extra);
 }
 function playLine(song, src) {
   const o = viewOpts(song);
@@ -1310,10 +1324,11 @@ function bassBarHTML(song) {
   return `<div class="bassbar">𝄢 Basový vzor:
     <select data-act="bpat">${[...new Set(BASS_PRESETS.map(x => x[2]))].map(g => `<optgroup label="${esc(g)}">${BASS_PRESETS.filter(x => x[2] === g).map(([v, l]) => `<option value="${esc(v)}"${v === pat ? ' selected' : ''}>${esc(l)}</option>`).join('')}</optgroup>`).join('')}<option value=""${known ? '' : ' selected'}>Vlastní…</option></select>
     <input type="text" data-act="bpatin" value="${esc(pat)}" title="Stupně akordu po dobách: 1 kořen, 2 sekunda, 3 tercie, 4 kvarta, 5 kvinta, 6 sexta, 7 septima, 8 oktáva, b/# = o půltón níž/výš, čárka = o oktávu níž (5,), > = chromatický přechod na další akord, >5 = přes kvintu dalšího akordu, >s = celým tónem, - = drž, | = další varianta pro další takt. Jeden akord = jeden takt.">
+    <select data-act="btime" title="Takt písně – uloží se jako {time: …}">${(() => { const k = meterOf(P(song).meta.time).key; return (METERS.includes(k) ? METERS : METERS.concat(k)).map(m => `<option value="${m}"${m === k ? ' selected' : ''}>takt ${m === '2/2' ? '2/2 (alla breve)' : m}</option>`).join(''); })()}</select>
     <select data-act="binstr" title="Nástroj – kontrabas volí nízké polohy, prázdné struny a ukáže prstoklad 1-2-4"><option value="electric"${S().bassInstr !== 'upright' ? ' selected' : ''}>Baskytara</option><option value="upright"${S().bassInstr === 'upright' ? ' selected' : ''}>Kontrabas</option></select>
     <select data-act="bpos" title="Kde zobrazit tab"><option value="line"${S().bassPos !== 'block' ? ' selected' : ''}>nad každým řádkem</option><option value="block"${S().bassPos === 'block' ? ' selected' : ''}>souhrnně u sloky</option></select>
     <span class="bplayctl"><button data-act="bplayall" class="pri">▶ Přehrát basu</button>
-    <label title="Tempo (doby za minutu) – uloží se do písně">♩=<input type="number" data-act="btempo" min="30" max="300" value="${songBpm(P(song))}"></label>
+    <label title="Tempo (doby za minutu) – uloží se do písně">${(() => { const m = meterOf(P(song).meta.time); return m.compound ? '♩.=' : m.den === 2 ? '𝅗𝅥=' : '♩='; })()}<input type="number" data-act="btempo" min="30" max="300" value="${songBpm(P(song))}"></label>
     <select data-act="bsound" title="Zvuk při přehrávání"><option value="upright"${S().bassSound !== 'electric' ? ' selected' : ''}>zvuk: kontrabas</option><option value="electric"${S().bassSound === 'electric' ? ' selected' : ''}>zvuk: baskytara</option></select>
     <label title="Půltaktové akordy vedou do dalšího akordu, akord přes víc taktů se obmění a v posledním taktu dojde turnaround (běh do dalšího akordu)"><input type="checkbox" data-act="bfills"${S().bassFills !== false ? ' checked' : ''}> chytré přechody</label>
     <label title="Osminy se hrají „houpavě“ (triolově) – blues, shuffle, boogie, swing"><input type="checkbox" data-act="bswing"${songSwing(P(song)) ? ' checked' : ''}> swing</label>
@@ -1947,11 +1962,19 @@ $('#main').addEventListener('change', e => {
       setSongDirective(curSong(), 'x_bass_pattern', e.target.value);
       if (pr && pr[3]) setSongDirective(curSong(), 'x_swing', 'ano');
       if (pr && pr[4] && P(curSong()).meta.time !== pr[4]) { setSongDirective(curSong(), 'time', pr[4]); toast('Takt písně nastaven na ' + pr[4]); }
+      else if (pr && !pr[4] && !patternFits(pr[0], P(curSong()).meta.time)) { setSongDirective(curSong(), 'time', '4/4'); toast('Takt písně nastaven na 4/4'); }
       renderView(true);
     }
     else $('[data-act="bpatin"]').focus();
   }
   else if (e.target.dataset.act === 'binstr') { S().bassInstr = e.target.value; save(); renderView(true); }
+  else if (e.target.dataset.act === 'btime') {
+    const song = curSong(), t = e.target.value, pat = P(song).meta.x_bass_pattern;
+    setSongDirective(song, 'time', t);
+    if (pat && !patternFits(pat, t)) { setSongDirective(song, 'x_bass_pattern', METER_DEF[t]); toast(`Takt ${t} – vzor změněn na „${METER_DEF[t]}“, aby seděl do taktu`); }
+    else toast('Takt písně: ' + t);
+    renderView(true);
+  }
   else if (e.target.dataset.act === 'bpos') { S().bassPos = e.target.value; save(); renderView(true); }
   else if (e.target.dataset.act === 'bfills') { S().bassFills = e.target.checked; save(); renderView(true); }
   else if (e.target.dataset.act === 'bswing') { setSongDirective(curSong(), 'x_swing', e.target.checked ? 'ano' : 'ne'); }
@@ -1970,7 +1993,7 @@ $('#main').addEventListener('click', e => {
   const actEl = e.target.closest('[data-act]'), a = actEl?.dataset.act;
   const song = curSong(), st = S();
   if (a) {
-    if (a === 'instr' || a === 'bfills' || a === 'bswing' || a === 'bsound' || a === 'bclick' || a === 'bloop' || a === 'btempo') return;
+    if (a === 'instr' || a === 'btime' || a === 'bfills' || a === 'bswing' || a === 'bsound' || a === 'bclick' || a === 'bloop' || a === 'btempo') return;
     if (a === 'bplayall') { BA.cur ? bassStop() : playSong(song); return; }
     if (a === 'bplay' || a === 'bedit') {
       const src = +actEl.closest('.btw').dataset.src;
