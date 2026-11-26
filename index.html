@@ -617,7 +617,12 @@ function meterOf(t) {
   return {num, den, compound, beats: compound ? num / 3 : num, key: m ? num + '/' + den : '4/4'};
 }
 // sedí vzor do taktu? (počet kroků dělí počet dílků taktu nebo naopak)
-function patternFits(pat, t) { const n = (pat.split('|')[0].trim().split(/\s+/).filter(Boolean)).length, g = meterOf(t).num; return n > 0 && (n % g === 0 || g % n === 0); }
+function patternFits(pat, t) {
+  const n = (pat.split('|')[0].trim().split(/\s+/).filter(Boolean)).length, m = meterOf(t), g = m.num;
+  if (!n) return false;
+  if (m.compound) return n === 1 || n % g === 0 || (g % n === 0 && n % m.beats === 0); // 6/8: 2, 6, 12 kroků – ne 3 (to by byly čtvrtky přes doby)
+  return n % g === 0 || g % n === 0;
+}
 function bassPatternOf(p) {
   return (p.meta.x_bass_pattern || METER_DEF[meterOf(p.meta.time).key] || '1 - 5, -').trim();
 }
