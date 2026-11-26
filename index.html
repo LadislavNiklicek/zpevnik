@@ -846,15 +846,43 @@ function lineBars(l, o) {
 
 /* ---- přehrávání basy (Web Audio, syntéza drnknuté struny – funguje offline) ---- */
 const BA = {ctx: null, bufs: new Map(), master: null, raf: 0, loopT: 0, cur: null};
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 function bassCtx() {
-  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {} // iPhone: hraj i s tichým režimem
+  // jen iPhone/iPad: hraj i v tichém režimu (na Macu tohle nastavení v Safari umí zvuk zablokovat)
+  if (IS_IOS) try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  // Safari umí kontext „přerušit“ (interrupted) nebo zavřít – pak ho při kliknutí vytvoříme znovu
+  if (BA.ctx && (BA.ctx.state === 'closed' || BA.ctx.state === 'interrupted')) { try { BA.ctx.close(); } catch (e) {} BA.ctx = null; BA.master = null; }
   if (!BA.ctx) {
     BA.ctx = new (window.AudioContext || window.webkitAudioContext)();
     // Safari/iPhone: zvuk se „odemkne“ jen přehráním něčeho přímo při kliknutí
-    try { const b = BA.ctx.createBuffer(1, 1, 22050), s = BA.ctx.createBufferSource(); s.buffer = b; s.connect(BA.ctx.destination); s.start(0); } catch (e) {}
+    try { const b = BA.ctx.createBuffer(1, 1, BA.ctx.sampleRate), s = BA.ctx.createBufferSource(); s.buffer = b; s.connect(BA.ctx.destination); s.start(0); } catch (e) {}
   }
   if (BA.ctx.state !== 'running') { const r = BA.ctx.resume(); if (r && r.catch) r.catch(() => {}); }
   return BA.ctx;
+}
+// test zvuku s diagnostikou (Nastavení → Test zvuku)
+function soundTest(out) {
+  const log = t => { out.textContent += t + '\n'; };
+  out.textContent = '';
+  try {
+    log('Prohlížeč: ' + navigator.userAgent.replace(/^Mozilla\/5\.0 /, ''));
+    log('audioSession: ' + (navigator.audioSession ? navigator.audioSession.type : 'není') + (IS_IOS ? ' (iOS)' : ''));
+    const before = BA.ctx ? BA.ctx.state : 'žádný';
+    const ctx = bassCtx();
+    log('Zvukový modul: před ' + before + ', teď ' + ctx.state + ', ' + ctx.sampleRate + ' Hz');
+    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + .05;
+    o.frequency.value = 440; g.gain.setValueAtTime(.25, t); g.gain.setValueAtTime(0, t + .4);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + .45);
+    if (!BA.master) { BA.master = ctx.createGain(); BA.master.gain.value = .9; BA.master.connect(ctx.destination); }
+    const t0 = performance.now(); pluckBuf(43, S().bassSound !== 'electric'); const gen = Math.round(performance.now() - t0);
+    bassNote(43, t + .7, 1.2, S().bassSound !== 'electric');
+    log('1) pípnutí 0,4 s, 2) basový tón G (výpočet ' + gen + ' ms)');
+    const c0 = ctx.currentTime;
+    setTimeout(() => {
+      log('Po 1 s: stav ' + ctx.state + ', čas zvuku ' + (ctx.currentTime > c0 + .5 ? 'běží ✓' : 'STOJÍ ✗ (prohlížeč zvuk nepustil)'));
+      log('Slyšíš oboje? Když ne, pošli mi tenhle text.');
+    }, 1000);
+  } catch (e) { log('CHYBA: ' + e.message); }
 }
 function pluckBuf(midi, upright) {
   const key = midi + (upright ? 'u' : 'e'); if (BA.bufs.has(key)) return BA.bufs.get(key);
@@ -1779,7 +1807,9 @@ function settingsModal() {
     <label><input type="checkbox" id="s_czech"> Česká notace akordů (H = h, B = b / Bb)</label>
     <label><input type="checkbox" id="s_wake"> Nezhasínat obrazovku při zobrazení písně (mobil)</label>
   </div>
+  <div style="margin-top:10px"><button data-act="stest">🔊 Test zvuku</button><pre id="stestOut" style="white-space:pre-wrap;font-size:11px;color:var(--muted);margin:6px 0 0"></pre></div>
   <div class="mfoot"><span class="sp"></span><button data-act="close">Zrušit</button><button data-act="sok" class="pri">Uložit</button></div>`, e => {
+    if (e.target.closest('[data-act="stest"]')) { soundTest($('#stestOut')); return; }
     if (e.target.closest('[data-act="sok"]')) {
       st.instrument = $('#s_instr').value; st.theme = $('#s_theme').value; st.scrollSpeed = Math.max(2, +$('#s_speed').value || 22);
       st.czech = $('#s_czech').checked; st.wake = $('#s_wake').checked;
