@@ -74,6 +74,9 @@ Vzory jsou rozdělené do skupin **Základní**, **Walking** (rozklady, stupnice
 (um-pa kořen–kvinta / tercie, dechovka – nastaví písni takt `{time: 2/4}`; běh do dalšího akordu jde přes poslední dva takty) a **Valčík**.
 Ve vlastním vzoru navíc: `2` `4` `6` stupně, `b`/`#` = o půltón níž/výš (`1 #2 3 5`), `>5` = přechod přes kvintu dalšího akordu,
 `>s` = celým tónem k dalšímu akordu, `|` = střídání variant takt po taktu (`1 2 3 5 | 6 5 3 >`).
+**Takt** písně se volí roletkou v liště basy (2/4, 3/4, 4/4, 2/2, 5/4, 6/8, 9/8, 12/8) a uloží se jako `{time: 6/8}`.
+Ve 6/8, 9/8 a 12/8 se počítá po houpavých dobách (tečkovaná čtvrťová, tempo ♩.=). Když vzor do nového taktu nesedí,
+nahradí se základním vzorem taktu; vzory valčíku, polky a 6/8 nastaví takt samy.
 Vzor s 8 kroky se hraje v osminách. Zaškrtávátko **swing** (uloží se do písně jako `{x_swing: ano}`) hraje osminy houpavě
 (triolově) – blues vzory ho zapnou samy.
 
