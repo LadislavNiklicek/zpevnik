@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zpěvník</title>
+<meta name="theme-color" content="#8f3a1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#f7f3ec;--panel:#fffdf9;--ink:#211c16;--muted:#7a7064;--line:#e4dccf;--accent:#8f3a1e;--chord:#b0381a;--note-bg:#ffefae;--note-ink:#5e4400;--chorus:#f1e9dc;--hover:#f0e8db}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15130f;--panel:#1d1a16;--ink:#ece5da;--muted:#9a9186;--line:#332e27;--accent:#e58a63;--chord:#f2995f;--note-bg:#4b3d0e;--note-ink:#ffe08a;--chorus:#25211b;--hover:#2a251f}}
+:root[data-theme="dark"]{--bg:#15130f;--panel:#1d1a16;--ink:#ece5da;--muted:#9a9186;--line:#332e27;--accent:#e58a63;--chord:#f2995f;--note-bg:#4b3d0e;--note-ink:#ffe08a;--chorus:#25211b;--hover:#2a251f}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap;min-height:34px}
+button:hover{background:var(--hover)}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+button.danger{color:#c0392b}
+button.ghost{border-color:transparent;background:transparent}
+select,input[type=text],input[type=number],input[type=search],textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:34px}
+.sp{flex:1}
+#bar{display:flex;align-items:center;gap:6px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+#bar h1{font-size:18px;margin:0 8px 0 0;color:var(--accent);letter-spacing:.3px}
+#app{flex:1;display:flex;min-height:0}
+#side{width:300px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--panel)}
+#side .sh{padding:8px;border-bottom:1px solid var(--line)}
+#q{width:100%}
+#count{font-size:12px;color:var(--muted);padding:4px 10px}
+#list{flex:1;overflow:auto;padding:0 6px 20px}
+#list .it{display:block;width:100%;text-align:left;border:0;border-radius:8px;background:none;padding:7px 10px;min-height:0;white-space:normal}
+#list .it:hover{background:var(--hover)}
+#list .it.act{background:var(--chorus)}
+#list .it b{display:block;font-weight:600}
+#list .it span{font-size:12px;color:var(--muted)}
+#main{flex:1;overflow:auto;min-width:0;position:relative}
+.vbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:8px 12px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.vbar .grp{display:flex;align-items:center;gap:2px}
+.vbar .trl{min-width:3.2em;text-align:center;font-size:13px;color:var(--muted)}
+.mob{display:none}
+.welcome{padding:40px;max-width:640px;color:var(--muted)}
+.welcome h2{color:var(--ink)}
+/* song */
+.song{padding:16px 22px 45vh;max-width:980px}
+.shead h1{font-size:1.55em;margin:0;line-height:1.2}
+.artist{color:var(--muted);font-size:.95em}
+.meta{color:var(--muted);font-size:.78em;display:flex;gap:1.1em;flex-wrap:wrap;margin-top:.2em}
+.blk{margin:0 0 .95em}
+.b-chorus{border-left:3px solid var(--accent);padding-left:.7em}
+.b-bridge{border-left:3px dashed var(--muted);padding-left:.7em}
+.blab{font-weight:700;font-size:.82em;color:var(--accent)}
+.chorusref{font-weight:700;color:var(--accent);font-style:italic}
+.ln{white-space:pre-wrap;line-height:1.3;border-radius:4px}
+.ln.hc{margin-top:.15em}
+.wd{white-space:nowrap}
+.sg{display:inline-block;white-space:pre}
+.sg .c{display:block;color:var(--chord);font-weight:700;font-size:.82em;line-height:1.15;padding-right:.35em}
+.cmt .lt{font-style:italic;color:var(--muted);background:var(--chorus);display:inline-block;padding:0 .45em;border-radius:4px}
+.tab .lt{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8em;white-space:pre;overflow-x:auto}
+.notes{display:flex;gap:.3em;flex-wrap:wrap;margin:.2em 0 .05em}
+.note{background:var(--note-bg);color:var(--note-ink);font-size:.74em;border-radius:4px;padding:.05em .5em;font-weight:600;line-height:1.5}
+.annot [data-src]{cursor:pointer}
+.annot [data-src]:hover{background:var(--hover);outline:1px dashed var(--accent)}
+.annot .note{outline:1px solid var(--note-ink)}
+.btab{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.68em;line-height:1.2;white-space:pre;overflow-x:auto;margin:.25em 0 .45em;background:var(--chorus);padding:.35em .55em;border-radius:5px;color:var(--ink)}
+.btab.bline{margin:.35em 0 .1em;padding:.2em .45em}
+.btab.bline{cursor:pointer}
+.btab.bline:hover{outline:1px dashed var(--chord)}
+.btw{display:flex;align-items:flex-start;gap:4px}
+.btw pre{flex:1;min-width:0;position:relative}
+.btact{display:flex;flex-direction:column;gap:3px;margin-top:.35em}
+.btact button{font-size:12px;padding:2px 7px;line-height:1.4;min-width:28px}
+.btact button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btw.playing pre{outline:2px solid var(--accent)}
+.btab.custom{border-left:3px solid var(--chord)}
+.bcur{position:absolute;background:var(--accent);opacity:.3;border-radius:3px;pointer-events:none}
+.bhl{background:var(--hover);border-radius:6px}
+.bplayctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%}
+.bplayctl input[type=number]{width:4.2em;font-family:inherit}
+.bplayctl input[type=checkbox]{width:auto}
+.bassbar .bplayctl button.on{background:#c0392b;border-color:#c0392b}
+.mbox.wide{max-width:min(96vw,1100px)}
+.bted{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;margin-top:10px}
+.bteb{background:var(--chorus);border-radius:8px;padding:6px}
+.btebh{display:flex;gap:4px;margin-bottom:4px}
+.btebh .btname{flex:1;min-width:0;width:5em;font-weight:700;color:var(--chord);padding:3px 6px;background:var(--panel);border:1px solid var(--line)}
+.btebh button{padding:2px 8px}
+.bteb table{border-collapse:collapse}
+.bteb th{font:600 12px ui-monospace,Menlo,monospace;color:var(--muted);padding-right:4px}
+.bteb td{padding:1px;border-bottom:1px solid var(--line)}
+.bteb td input{width:2.1em;text-align:center;padding:3px 0;font:600 14px ui-monospace,Menlo,monospace;border-radius:4px;background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.bteb td input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.bteb td.hl input{background:var(--accent);color:#fff}
+.btebf{display:flex;gap:4px;margin-top:5px}
+.btebf select{font-size:12px;padding:2px}
+.btadd{align-self:stretch;min-height:80px;font-size:13px}
+.bthelp{font-size:12px;color:var(--muted);margin:10px 0 4px}
+.btdir{display:block;font-size:11px;color:var(--muted);word-break:break-all}
+.barsel{display:flex;flex-wrap:wrap;gap:10px}
+.barsel label{display:flex;flex-direction:column;gap:3px;align-items:flex-start;font-size:14px}
+.barsel b{color:var(--chord)}
+.barsel small{color:var(--muted);font-size:11px}
+.bassln{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78em;color:var(--chord);white-space:pre-wrap;margin-top:.15em}
+.bassbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;background:var(--chorus);padding:8px 10px;border-radius:8px;margin-bottom:12px}
+.bassbar select{max-width:100%}
+.bassbar input{font-family:ui-monospace,Menlo,monospace;width:11em}
+.bassbar small{color:var(--muted);flex-basis:100%}
+.annot .bassln{outline:1px dashed var(--chord)}
+.annot-tip{background:var(--note-bg);color:var(--note-ink);padding:6px 10px;border-radius:8px;font-size:13px;margin-bottom:10px}
+.dgs{display:flex;flex-wrap:wrap;gap:.5em .8em;margin:.6em 0 1.1em}
+.dg{display:flex;flex-direction:column;align-items:center;cursor:pointer;font-size:.78em;user-select:none}
+.dg b{color:var(--chord)}
+.dg svg{height:6em;width:auto;display:block}
+.dg small{color:var(--muted);font-size:.8em}
+/* editor */
+.efields{display:grid;grid-template-columns:2fr 2fr .8fr .8fr .8fr;gap:8px;padding:10px 12px 4px}
+.efields label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted);min-width:0}
+.efields input{width:100%;font-size:15px}
+@media (max-width:760px){.efields{grid-template-columns:1fr 1fr 1fr}.efields .wide{grid-column:1/-1}}
+.etools{display:flex;gap:5px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line)}
+.edit{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100% - 110px)}
+.edit textarea{border:0;border-right:1px solid var(--line);border-radius:0;resize:none;padding:14px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;min-height:70vh;outline:none}
+.edit .song{padding-bottom:30px;font-size:15px}
+details.help{padding:10px 14px;font-size:13px;color:var(--muted)}
+details.help code{background:var(--chorus);padding:0 4px;border-radius:3px}
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
+#modal[hidden]{display:none}
+.mbox{background:var(--panel);border-radius:14px;padding:18px;max-width:620px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.mbox h3{margin:0 0 12px}
+.mfoot{display:flex;gap:6px;margin-top:14px;align-items:center;flex-wrap:wrap}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mgrid label,.mcol label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+.mcol{display:flex;flex-direction:column;gap:8px}
+.checks{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 0;font-size:14px}
+.checks label{display:flex;gap:6px;align-items:center}
+.ctx{background:var(--chorus);padding:8px 10px;border-radius:8px;margin-bottom:10px;font-size:14px;white-space:pre-wrap}
+.presets{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.presets button{font-size:13px;min-height:30px;padding:4px 8px}
+.plist{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:6px}
+.plist label{display:flex;gap:8px;align-items:center;padding:2px 0;font-size:14px}
+.plist small{color:var(--muted)}
+.menu{display:flex;flex-direction:column;gap:6px}
+.menu button{text-align:left;white-space:normal}
+.menu button small{display:block;color:var(--muted);font-size:12px}
+.mbox.dark-btns .menu button.pri small{color:#ffffffcc}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:60;max-width:90vw}
+#toast.show{opacity:1}
+#syncBtn.serr{color:#c0392b;border-color:#c0392b}
+#syncBtn.sok{color:var(--accent)}
+#scrollCtl{position:fixed;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:30;display:flex;gap:4px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:0 4px 18px rgba(0,0,0,.2)}
+#scrollCtl[hidden]{display:none}
+#scrollCtl span{min-width:3em;text-align:center;font-size:13px}
+/* print preview */
+#printView{position:fixed;inset:0;z-index:50;overflow:auto;background:#6b6660}
+#printView[hidden]{display:none}
+.ptools{position:sticky;top:0;z-index:2;display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#pages{--ink:#111;--muted:#555;--chord:#a3301a;--accent:#a3301a;--note-bg:#fff0b0;--note-ink:#4d3800;--chorus:#f3eee6;--line:#ccc;--hover:transparent;padding:10px 0 40px}
+#pages.bw{--chord:#000;--accent:#000;--note-bg:#fff;--note-ink:#000;--chorus:#fff}
+#pages.bw .note{border:1px solid #000}
+#pages.bw .cmt .lt{border:1px solid #999}
+.page{background:#fff;color:#111;margin:14px auto;box-shadow:0 3px 14px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.pcols{display:flex}
+.pcol,.pmeasure{font-size:var(--pfont);line-height:1.3;min-width:0}
+.pcol{flex:1 1 0}
+.pmeasure{position:absolute;left:-20000px;top:0;visibility:hidden}
+.pb{display:flow-root;padding-bottom:.55em}
+.pb .blk{margin:0}
+.ps-head{padding-top:.2em}
+.ps-head h1{font-size:1.35em}
+.ps-head .dgs{margin:.35em 0 .1em}
+.ps-head .dg svg{height:5em}
+.pfoot{position:absolute;left:0;right:0;text-align:center;font-size:8.5pt;color:#666}
+.cover{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.cover h1{font-size:34pt;margin:0}
+.cover p{color:#666;font-size:12pt}
+.toc-h{font-size:1.5em;font-weight:700;margin-bottom:.3em}
+.toc-row{display:flex;gap:.5em;border-bottom:1px dotted #bbb;padding:.12em 0}
+.toc-row .tt{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.toc-row small{color:#666}
+.toc-row .pg{width:2.4em;text-align:right;flex:none}
+@media (max-width:760px){
+  #side{width:100%;border:0}
+  body.in-song #side{display:none}
+  body:not(.in-song) #main{display:none}
+  body.in-song #bar{display:none}
+  .mob{display:inline-flex}
+  .desk{display:none}
+  .song{padding:12px 14px 45vh}
+  .vbar{padding:6px 8px;gap:4px}
+  .vbar select{max-width:8.5em}
+  .btab{font-size:.56em;padding:.35em .4em}
+  .vbar button{padding:6px 8px}
+  .edit{grid-template-columns:1fr}
+  .edit textarea{border-right:0;border-bottom:1px solid var(--line);min-height:55vh}
+  .mgrid{grid-template-columns:1fr}
+  #bar h1{font-size:17px}
+}
+@media print{
+  html,body{height:auto;overflow:visible;display:block;background:#fff}
+  body>*{display:none!important}
+  body>#printView{display:block!important;position:static;overflow:visible;background:none}
+  .ptools{display:none!important}
+  #pages{padding:0}
+  .page{margin:0;box-shadow:none;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+}
+</style>
+<style id="pageStyle">@page{size:A4;margin:0}</style>
+</head>
+<body>
+<header id="bar">
+  <h1>♪ Zpěvník</h1>
+  <button data-act="new" title="Nová píseň">＋ Nová</button>
+  <button data-act="data" title="Import a export">⇅ Data</button>
+  <button data-act="print" title="Tisk a export do PDF">🖨 Tisk / PDF</button>
+  <span class="sp"></span>
+  <button data-act="sync" id="syncBtn" title="Synchronizace písní">☁</button>
+  <button data-act="settings" title="Nastavení">⚙</button>
+</header>
+<div id="app">
+  <aside id="side">
+    <div class="sh"><input type="search" id="q" placeholder="Hledat název, interpreta, text…" autocomplete="off"></div>
+    <div id="count"></div>
+    <div id="list"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="modal" hidden></div>
+<div id="printView" hidden></div>
+<div id="scrollCtl" hidden><button data-sc="-">−</button><span id="scSpeed"></span><button data-sc="+">+</button><button data-sc="stop">■</button></div>
+<div id="toast"></div>
+<input type="file" id="fileIn" multiple hidden accept=".cho,.chopro,.chordpro,.crd,.pro,.txt,.json,text/plain,application/json">
+<script id="zpevnik-data" type="application/json">null</script>
+<script>
+'use strict';
+/* ============ základ ============ */
+const TEMPLATE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const LS = 'zpevnik.v1';
+const DEF = {instrument:'guitar', czech:true, chords:true, diagrams:true, notes:true, font:18, theme:'auto', wake:true, scrollSpeed:22, voicing:{}, bass:false, bassPos:'line', bassInstr:'electric', bassClick:false, bassFills:true, bassSound:'upright', bassLoop:false, bookTitle:'Zpěvník', print:null};
+let db = {songs:[], settings:{...DEF}, embedSeen:0, deleted:{}};
+const S = () => db.settings;
+let state = {mode:'list', id:null, annot:false};
+
+function save(fromSync) {
+  try { localStorage.setItem(LS, JSON.stringify(db, (k, v) => k[0] === '_' ? undefined : v)); }
+  catch (e) { toast('Nepodařilo se uložit do prohlížeče!'); }
+  if (!fromSync) try { syncOnSave(); } catch (e) {}
+}
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function download(name, content, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type: mime}));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+const cleanText = t => String(t || '').replace(/\r\n?/g, '\n');
+
+/* ============ hudební teorie ============ */
+const BASE = {C:0, D:2, E:4, F:5, G:7, A:9, B:11, H:11};
+const NAMES_CZ = ['C','C#','D','Eb','E','F','F#','G','Ab','A','B','H'];
+const NAMES_EN = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const CH_RE = /^([A-H])([#b♯♭]?)(.*?)(?:\/([A-H])([#b♯♭]?))?$/;
+function pcOf(L, a) {
+  if (L === 'B' && S().czech) return (a === '#' || a === '♯') ? 11 : 10;
+  let pc = BASE[L];
+  if (a === '#' || a === '♯') pc++; else if (a === 'b' || a === '♭') pc--;
+  return (pc + 12) % 12;
+}
+function splitChord(c) {
+  const m = String(c).trim().match(CH_RE);
+  if (!m) return null;
+  return {root: pcOf(m[1], m[2]), suffix: m[3] || '', bass: m[4] ? pcOf(m[4], m[5]) : null};
+}
+const SUFFIX_OK = /^(maj|min|mi|m|M|dim|aug|sus|add|no|omit|°|ø|Δ|\+|-|#|b|♯|♭|\d|\(|\)|\/)*$/;
+function isChord(tok) {
+  const t = tok.replace(/^\(|\)$/g, '');
+  const m = t.match(CH_RE);
+  return !!m && SUFFIX_OK.test(m[3] || '');
+}
+function noteName(pc) { return (S().czech ? NAMES_CZ : NAMES_EN)[((pc % 12) + 12) % 12]; }
+function transposeChord(c, n) {
+  if (!n) return c;
+  const w = String(c).match(/^(\(?)(.*?)(\)?)$/);
+  const s = splitChord(w[2]);
+  if (!s || !SUFFIX_OK.test(s.suffix)) return c;
+  return w[1] + noteName(s.root + n) + s.suffix + (s.bass != null ? '/' + noteName(s.bass + n) : '') + w[3];
+}
+function qualityIntervals(q) {
+  let s = (q || '').replace(/[()\s]/g, ''), third = 4, fifth = 7, sev = null, m;
+  const ext = [];
+  if (/^[øØ]/.test(s)) { third = 3; fifth = 6; sev = 10; s = s.slice(1); if (s[0] === '7') s = s.slice(1); }
+  else if ((m = s.match(/^(dim|°|o)/))) { third = 3; fifth = 6; s = s.slice(m[0].length); if (s[0] === '7') { sev = 9; s = s.slice(1); } }
+  else if ((m = s.match(/^(aug|\+)/))) { fifth = 8; s = s.slice(m[0].length); }
+  else if ((m = s.match(/^(min|mi|m(?!aj)|-)/))) { third = 3; s = s.slice(m[0].length); }
+  const addExt = n => { if (n >= 9) ext.push(14); if (n >= 11) ext.push(17); if (n >= 13) ext.push(21); };
+  if ((m = s.match(/^(maj|Maj|MA|M|Δ|j)(\d*)/))) { sev = 11; addExt(+(m[2] || 7)); s = s.slice(m[0].length); }
+  else if ((m = s.match(/^(13|11|9|7)/))) { if (sev == null) sev = 10; addExt(+m[1]); s = s.slice(m[0].length); }
+  else if ((m = s.match(/^(6\/9|69|6)/))) { ext.push(9); if (m[1] !== '6') ext.push(14); s = s.slice(m[0].length); }
+  else if (/^5/.test(s)) { third = null; s = s.slice(1); }
+  let g = 0;
+  while (s && g++ < 20) {
+    if ((m = s.match(/^(b5|-5)/))) fifth = 6;
+    else if ((m = s.match(/^(#5|\+5)/))) fifth = 8;
+    else if ((m = s.match(/^(b9|-9)/))) ext.push(13);
+    else if ((m = s.match(/^(#9|\+9)/))) ext.push(15);
+    else if ((m = s.match(/^(#11|\+11)/))) ext.push(18);
+    else if ((m = s.match(/^(b13|-13)/))) ext.push(20);
+    else if ((m = s.match(/^sus(2|4|9)?/))) third = (m[1] === '2' || m[1] === '9') ? 2 : 5;
+    else if ((m = s.match(/^(add|\/)?(13|11|9|6|4|2)/))) ext.push({13:21, 11:17, 9:14, 6:9, 4:17, 2:14}[m[2]]);
+    else if ((m = s.match(/^(maj7|M7|7)/))) sev = m[1] === '7' ? 10 : 11;
+    else m = [s[0]];
+    s = s.slice(m[0].length);
+  }
+  return {third, fifth, sev, ext};
+}
+function chordTones(ch) {
+  const s = splitChord(String(ch).replace(/^\(|\)$/g, ''));
+  if (!s || !SUFFIX_OK.test(s.suffix)) return null;
+  const q = qualityIntervals(s.suffix), r = s.root;
+  const req = new Set([r]), opt = new Set();
+  if (q.third != null) req.add((r + q.third) % 12);
+  if (q.sev != null) req.add((r + q.sev) % 12);
+  if (q.fifth !== 7 || q.third == null) req.add((r + q.fifth) % 12); else opt.add((r + 7) % 12);
+  q.ext.forEach((e, i) => (i === q.ext.length - 1 ? req : opt).add((r + e) % 12));
+  const all = new Set([...req, ...opt]);
+  if (s.bass != null) all.add(s.bass);
+  return {root: r, req: [...req], opt: [...opt].filter(x => !req.has(x)), all, bass: s.bass};
+}
+
+/* ============ nástroje a hmaty ============ */
+const INSTR = {
+  guitar:         {name:'Kytara', tuning:[40,45,50,55,59,64], mute:2, span:3},
+  ukulele:        {name:'Ukulele', tuning:[67,60,64,69], span:3},
+  bouzouki_irish: {name:'Buzuki irské (GDAD)', tuning:[43,50,57,62], span:3},
+  bouzouki_greek: {name:'Buzuki řecké (CFAD)', tuning:[48,53,57,62], span:3},
+  mandolin:       {name:'Mandolína (GDAE)', tuning:[55,62,69,76], span:4},
+  tenor_banjo:    {name:'Tenor banjo (CGDA)', tuning:[48,55,62,69], span:4},
+  baritone_uke:   {name:'Barytonové ukulele (DGBE)', tuning:[50,55,59,64], span:3},
+};
+const vCache = new Map();
+function voicings(chord, ik) {
+  const key = ik + '|' + chord + '|' + (S().czech ? 1 : 0);
+  if (vCache.has(key)) return vCache.get(key);
+  const ins = INSTR[ik] || INSTR.guitar, c = chordTones(chord);
+  let res = [];
+  if (c) { res = searchVoicings(c, ins, false); if (!res.length) res = searchVoicings(c, ins, true); }
+  vCache.set(key, res);
+  return res;
+}
+function searchVoicings(c, ins, forceMute) {
+  const T = ins.tuning, n = T.length, span = ins.span || 3;
+  const asc = T.every((v, i) => !i || v > T[i - 1]);
+  const muteN = ins.mute || (forceMute ? 1 : 0);
+  const found = new Map(), cur = new Array(n);
+  const evaluate = () => {
+    const key = cur.join(',');
+    if (found.has(key)) return;
+    let mutes = 0, opens = 0, low = null, lowP = 1e9;
+    const pcs = new Set(), fretted = [];
+    for (let i = 0; i < n; i++) {
+      const f = cur[i];
+      if (f < 0) { mutes++; continue; }
+      if (f === 0) opens++; else fretted.push(f);
+      const p = T[i] + f; pcs.add(p % 12);
+      if (p < lowP) { lowP = p; low = p % 12; }
+    }
+    if (n - mutes < Math.min(3, n)) return;
+    for (const r of c.req) if (!pcs.has(r)) return;
+    let mn = 0, mx = 0;
+    if (fretted.length) { mn = Math.min(...fretted); mx = Math.max(...fretted); if (mx - mn > span) return; }
+    let fingers = fretted.length, barre = 0;
+    if (fingers > 4) {
+      const first = cur.indexOf(mn); let ok = true;
+      for (let i = first; i < n; i++) if (cur[i] < mn) { ok = false; break; }
+      if (ok) { barre = mn; fingers = 1 + fretted.filter(f => f > mn).length; }
+    }
+    if (fingers > 4) return;
+    let score = 0;
+    if (asc) { if (c.bass != null) { if (low !== c.bass) return; } else if (low !== c.root) score += 5; }
+    else if (c.bass != null && !pcs.has(c.bass)) return;
+    score += mn + (mx - mn) * 0.4 + mutes * 1.2 + fingers * 0.4 - opens * 0.15;
+    for (const o of c.opt) if (!pcs.has(o)) score += 1;
+    const fi = cur.findIndex(f => f > 0);
+    for (let i = fi + 1; fi >= 0 && i < n - 1; i++) if (cur[i] === 0 && cur.slice(i + 1).some(f => f > 0)) score += .8;
+    found.set(key, {fr: cur.slice(), barre, score});
+  };
+  for (let p = 1; p <= 12 - span; p++) {
+    const opts = T.map((t, i) => {
+      const o = [];
+      if (c.all.has(t % 12)) o.push(0);
+      for (let f = p; f <= p + span; f++) if (c.all.has((t + f) % 12)) o.push(f);
+      if (i < muteN) o.push(-1);
+      return o;
+    });
+    const rec = i => {
+      if (i === n) { evaluate(); return; }
+      for (const f of opts[i]) {
+        if (f === -1 && i > 0 && cur[i - 1] !== -1) continue;
+        cur[i] = f; rec(i + 1);
+      }
+    };
+    rec(0);
+  }
+  return [...found.values()].sort((a, b) => a.score - b.score).slice(0, 8);
+}
+function diagramSVG(v) {
+  const fr = v.fr, n = fr.length, sg = 10, fg = 12, nf = 4, L = 14, R = 6, Tp = 13;
+  const w = L + R + sg * (n - 1), h = Tp + fg * nf + 4;
+  const fretted = fr.filter(f => f > 0);
+  const mx = fretted.length ? Math.max(...fretted) : 0, mn = fretted.length ? Math.min(...fretted) : 0;
+  const base = mx <= nf ? 1 : mn;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width=".8">`;
+  for (let i = 0; i <= nf; i++) { const y = Tp + i * fg; s += `<line x1="${L}" x2="${L + sg * (n - 1)}" y1="${y}" y2="${y}"${i === 0 && base === 1 ? ' stroke-width="2.6"' : ''}/>`; }
+  for (let i = 0; i < n; i++) { const x = L + i * sg; s += `<line x1="${x}" x2="${x}" y1="${Tp}" y2="${Tp + fg * nf}"/>`; }
+  if (base > 1) s += `<text x="${L - 4}" y="${Tp + fg * .72}" font-size="8" text-anchor="end" fill="currentColor" stroke="none">${base}</text>`;
+  if (v.barre) {
+    const first = fr.indexOf(v.barre), y = Tp + (v.barre - base + .5) * fg;
+    s += `<rect x="${L + first * sg - 4}" y="${y - 4}" width="${sg * (n - 1 - first) + 8}" height="8" rx="4" fill="currentColor" stroke="none"/>`;
+  }
+  fr.forEach((f, i) => {
+    const x = L + i * sg;
+    if (f < 0) s += `<text x="${x}" y="${Tp - 3}" font-size="8" text-anchor="middle" fill="currentColor" stroke="none">×</text>`;
+    else if (f === 0) s += `<circle cx="${x}" cy="${Tp - 5.5}" r="2.6"/>`;
+    else if (!(v.barre && f === v.barre)) s += `<circle cx="${x}" cy="${Tp + (f - base + .5) * fg}" r="3.8" fill="currentColor" stroke="none"/>`;
+  });
+  return s + '</svg>';
+}
+function diagramsHTML(chords, ik) {
+  if (!chords.length) return '';
+  return '<div class="dgs">' + chords.map(c => {
+    const vs = voicings(c, ik);
+    if (!vs.length) return `<div class="dg"><b>${esc(c)}</b><small>?</small></div>`;
+    const i = (S().voicing[ik + '|' + c] || 0) % vs.length;
+    return `<div class="dg" data-chord="${esc(c)}" title="Klikni pro jiný hmat (${i + 1}/${vs.length})"><b>${esc(c)}</b>${diagramSVG(vs[i])}</div>`;
+  }).join('') + '</div>';
+}
+
+/* ============ ChordPro parser ============ */
+function parseBars(v) {
+  return String(v).trim().split(/[\s,;]+/).filter(Boolean).map(t => /^(¼|1\/4|0[.,]25)$/.test(t) ? .25 : /^(½|1\/2|0[.,]5)$/.test(t) ? .5 : Math.max(.25, Math.min(16, parseFloat(t) || 1)));
+}
+const fmtBars = n => n === .25 ? '¼' : n === .5 ? '½' : String(n);
+const DIR_RE = /^\s*\{\s*([a-zA-Z_]+)\s*(?:[:\s]\s*(.*?))?\s*\}\s*$/;
+function parse(text) {
+  const lines = cleanText(text).split('\n');
+  const song = {title:'', artist:'', subtitle:'', meta:{}, blocks:[]};
+  let cur = null, env = null, envLabel = '', pending = [], pendingBars = null, pendingBtab = null;
+  const flush = () => { if (cur && cur.lines.length) song.blocks.push(cur); cur = null; };
+  const ensure = () => cur || (cur = {type: env || 'verse', label: envLabel, lines: []});
+  const take = () => { const p = pending; pending = []; return p; };
+  const startEnv = (t, v) => { flush(); env = t; envLabel = v; };
+  lines.forEach((raw, idx) => {
+    const d = raw.match(DIR_RE);
+    if (d) {
+      const k = d[1].toLowerCase(), v = (d[2] || '').trim();
+      switch (k) {
+        case 'title': case 't': song.title = v; break;
+        case 'subtitle': case 'st': song.subtitle = v; break;
+        case 'artist': case 'a': song.artist = v; break;
+        case 'comment': case 'c': case 'ci': case 'comment_italic': case 'cb': case 'comment_box': case 'highlight':
+          ensure().lines.push({t:'cmt', text:v, src:idx, notes:take()}); break;
+        case 'soc': case 'start_of_chorus': startEnv('chorus', v); break;
+        case 'sov': case 'start_of_verse': startEnv('verse', v); break;
+        case 'sob': case 'start_of_bridge': startEnv('bridge', v); break;
+        case 'sot': case 'start_of_tab': case 'sog': case 'start_of_grid': startEnv('tab', v); break;
+        case 'eoc': case 'end_of_chorus': case 'eov': case 'end_of_verse': case 'eob': case 'end_of_bridge':
+        case 'eot': case 'end_of_tab': case 'eog': case 'end_of_grid': flush(); env = null; envLabel = ''; break;
+        case 'chorus': flush(); song.blocks.push({type:'chorusref', label: v || 'Refrén', lines:[], src:idx, notes:take()}); break;
+        case 'x_note': case 'note': pending.push({text:v, src:idx}); break;
+        case 'x_bass': pending.push({text:v, src:idx, bass:true}); break;
+        case 'x_bars': pendingBars = {src: idx, v: parseBars(v)}; break;
+        case 'x_btab': pendingBtab = {src: idx, v}; break;
+        case 'new_page': case 'np': case 'column_break': case 'colb': flush(); song.blocks.push({type:'break', lines:[]}); break;
+        default: if (v) song.meta[k] = v;
+      }
+      return;
+    }
+    if (/^#/.test(raw)) return;
+    if (env === 'tab') { ensure().lines.push({t:'tab', text:raw, src:idx, notes:take()}); return; }
+    if (!raw.trim()) { if (env) { if (cur && cur.lines.length) cur.lines.push({t:'blank', src:idx, notes:[]}); } else flush(); return; }
+    const parts = []; const re = /\[([^\]]*)\]/g; let last = 0, m, chord = null;
+    while ((m = re.exec(raw))) { const t = raw.slice(last, m.index); if (t || chord != null) parts.push({chord, text:t}); chord = m[1]; last = re.lastIndex; }
+    parts.push({chord, text: raw.slice(last)});
+    ensure().lines.push({t:'ly', parts, src:idx, notes:take(), bars: pendingBars ? pendingBars.v : null, barsSrc: pendingBars ? pendingBars.src : null, btab: pendingBtab && pendingBtab.v || null, btabSrc: pendingBtab ? pendingBtab.src : null});
+    pendingBars = null; pendingBtab = null;
+  });
+  flush();
+  if (pending.length) song.blocks.push({type:'verse', label:'', lines:[{t:'nl', src:pending[0].src, notes:take()}]});
+  // pokračující akord (řádek začíná bez akordu) a první akord dalšího řádku
+  const lyr = [];
+  for (const b of song.blocks) if (b.type !== 'tab') for (const l of b.lines) if (l.t === 'ly') lyr.push(l);
+  let last = null;
+  lyr.forEach(l => {
+    const chs = l.parts.filter(p => p.chord != null && isChord(p.chord.replace(/^\(|\)$/g, ''))).map(p => p.chord.replace(/^\(|\)$/g, ''));
+    const first = l.parts[0];
+    const startsWithChord = first && (first.chord != null || !first.text.trim()) && chs.length;
+    l.carry = !startsWithChord && last ? last : null;
+    l.chs = chs;
+    if (chs.length) last = chs[chs.length - 1];
+  });
+  lyr.forEach((l, i) => { l.next = null; for (let j = i + 1; j < lyr.length && !l.next; j++) l.next = lyr[j].chs[0] || null; });
+  if (!song.artist && song.subtitle) song.artist = song.subtitle;
+  return song;
+}
+function P(song) { if (song._pt !== song.text) { song._p = parse(song.text); song._pt = song.text; } return song._p; }
+function uniqueChords(p, tr) {
+  const out = [], seen = new Set();
+  for (const b of p.blocks) for (const l of b.lines) if (l.t === 'ly') for (const pt of l.parts) {
+    if (pt.chord == null) continue;
+    const c = transposeChord(pt.chord.replace(/^\(|\)$/g, ''), tr);
+    if (!seen.has(c) && isChord(c)) { seen.add(c); out.push(c); }
+  }
+  return out;
+}
+
+/* ============ vykreslení písně ============ */
+function lyricHTML(parts, o) {
+  let s = ''; const at = new Map();
+  for (const p of parts) {
+    if (p.chord != null) { const c = transposeChord(p.chord, o.tr); at.set(s.length, at.has(s.length) ? at.get(s.length) + ' ' + c : c); }
+    s += p.text;
+  }
+  if (!o.chords || !at.size) return s.trim() ? esc(s) : (at.size ? '' : '&nbsp;');
+  const keys = [...at.keys()].sort((a, b) => a - b), tokens = [], re = /\S+|\s+/g; let m;
+  while ((m = re.exec(s))) tokens.push([m.index, m.index + m[0].length, /\S/.test(m[0])]);
+  if (!tokens.length) tokens.push([0, 0, false]);
+  let out = '';
+  tokens.forEach(([a, b, word], ti) => {
+    const lastT = ti === tokens.length - 1;
+    const inT = keys.filter(k => k >= a && (k < b || (lastT && k === b)));
+    if (!inT.length) { out += esc(s.slice(a, b)); return; }
+    let h = inT[0] > a ? esc(s.slice(a, inT[0])) : '';
+    inT.forEach((k, j) => {
+      const t = s.slice(k, j + 1 < inT.length ? inT[j + 1] : b);
+      h += `<span class="sg"><span class="c">${esc(at.get(k))}</span><span class="w">${t ? esc(t) : ' '}</span></span>`;
+    });
+    out += word ? `<span class="wd">${h}</span>` : h;
+  });
+  return out;
+}
+function notesHTML(notes, o) {
+  if (!notes || !notes.length) return '';
+  const bass = o.chords ? notes.filter(n => n.bass).map(n => `<div class="bassln" data-note="${n.src}">${esc(n.text)}</div>`).join('') : '';
+  const nn = o.notes ? notes.filter(n => !n.bass) : [];
+  return (nn.length ? '<div class="notes">' + nn.map(n => `<span class="note" data-note="${n.src}">${esc(n.text)}</span>`).join('') + '</div>' : '') + bass;
+}
+
+/* ============ basová linka ============ */
+const BASS_OPEN = [28, 33, 38, 43]; // E1 A1 D2 G2
+const BASS_PRESETS = [
+  // [vzor, popis, skupina, swing]
+  ['1 - 5, -', 'Kořen – kvinta dole (folk, country)', 'Základní'],
+  ['1 - 5 -', 'Kořen – kvinta nahoře', 'Základní'],
+  ['1 - - -', 'Jen kořen (celý takt)', 'Základní'],
+  ['1 1 1 1', 'Kořen ve čtvrtích', 'Základní'],
+  ['1 5 8 5', 'Kořen – kvinta – oktáva', 'Základní'],
+  ['1 3 5 3', 'Rozklad akordu', 'Základní'],
+  ['1 1 5, 5,', 'Rock / polka (osminy po dvou)', 'Základní'],
+  ['1 5,', 'Dva akordy v taktu', 'Základní'],
+  ['1 3 5 >', 'Walking – rozklad + chromatický přechod', 'Walking'],
+  ['1 2 3 >', 'Walking – stupnicí nahoru + přechod', 'Walking'],
+  ['1 5 6 >', 'Walking – přes sextu + přechod', 'Walking'],
+  ['8 7 5 >', 'Walking – z oktávy dolů + přechod', 'Walking'],
+  ['1 #2 3 5', 'Walking – chromaticky k terci', 'Walking'],
+  ['1 3 5 >5', 'Walking – přechod přes kvintu dalšího akordu', 'Walking'],
+  ['1 2 3 5 | 6 5 3 >', 'Walking – nahoru a dolů (2 takty)', 'Walking'],
+  ['1 3 5 6 | 8 6 5 >', 'Walking – sexta a oktáva (2 takty)', 'Walking'],
+  ['1 5 6 >s | 1 3 5 >', 'Walking – jazzový (2 takty)', 'Walking'],
+  ['1 3 5 6 7 6 5 3', 'Boogie-woogie (osminy)', 'Blues a boogie', 1],
+  ['1 1 3 3 5 5 6 6', 'Boogie – stoupavý (osminy po dvou)', 'Blues a boogie', 1],
+  ['1 1 5 5 6 6 5 5', 'Shuffle kořen–kvinta–sexta (rock’n’roll)', 'Blues a boogie', 1],
+  ['1 3 5 6 8 6 5 3', 'Boogie s oktávou', 'Blues a boogie', 1],
+  ['1 3 5 6 | 7 6 5 3', 'Blues walking (nahoru / dolů)', 'Blues a boogie', 1],
+  ['1 3 5 6', 'Blues walking ve čtvrtích', 'Blues a boogie', 1],
+  ['1 8 7 5', 'Blues – oktáva a septima', 'Blues a boogie', 1],
+  ['1 - 3 5 6 5 3 >', 'Pomalé blues (osminy)', 'Blues a boogie', 1],
+  ['1 3 4 5 | 7 5 4 3', 'Mollové blues', 'Blues a boogie', 1],
+  ['1 5, 5,', 'Valčík 3/4 (um-pa-pa)', 'Valčík'],
+  ['1 - 5,', 'Valčík 3/4 (kořen – kvinta)', 'Valčík'],
+  ['1 3 5', 'Valčík 3/4 – walking', 'Valčík'],
+];
+function bassPatternOf(p) {
+  return (p.meta.x_bass_pattern || (/^3\//.test(p.meta.time || '') ? '1 5, 5,' : '1 - 5, -')).trim();
+}
+function bassPos(p, nearF, upright) {
+  let best = null;
+  for (let s = 0; s < 4; s++) {
+    const f = p - BASS_OPEN[s]; if (f < 0 || f > (upright ? 9 : 15)) continue;
+    const d = Math.abs(f - nearF);
+    // kontrabas: prázdné struny jsou vítané, ruka drží polohu (1-2-4 = rozsah celého tónu), vysoké polohy jen výjimečně
+    const cost = upright
+      ? (f === 0 ? 0 : d * 1.2 + (d > 2 ? 2 : 0) + (f > 4 ? (f - 4) * 1.5 : 0))
+      : (f === 0 ? 1 : d) + (f > 12 ? 3 : 0);
+    if (!best || cost < best.cost) best = {s, f, cost};
+  }
+  return best;
+}
+function blockChords(b, tr) {
+  const out = [];
+  for (const l of b.lines) if (l.t === 'ly') for (const pt of l.parts) {
+    if (pt.chord == null) continue;
+    const c = transposeChord(pt.chord.replace(/^\(|\)$/g, ''), tr);
+    if (isChord(c)) out.push(c);
+  }
+  return out;
+}
+function bassTab(chords, pat, perRowChars, follow, suffix, counts, upright) {
+  return bassRender(bassBars(chords, pat, follow, counts, upright), perRowChars, suffix, upright).text;
+}
+function bassBars(chords, pat, follow, counts, upright) {
+  // vzor může mít víc variant oddělených | – střídají se takt po taktu
+  const vars = pat.split('|').map(v => v.split(/\s+/).filter(Boolean).slice(0, 16)).filter(v => v.length);
+  if (!vars.length || !chords.length) return [];
+  let bi = 0;
+  const nBars = chords.length;
+  if (follow) chords = chords.concat([follow]);
+  let prevP = 33, prevF = upright ? 2 : 3;
+  const roots = chords.map(c => {
+    const s = splitChord(c.replace(/^\(|\)$/g, '')); if (!s) return null;
+    const pc = s.bass != null ? s.bass : s.root; let best = null;
+    for (let p = 28; p <= 43; p++) {
+      if (p % 12 !== pc) continue;
+      const pos = bassPos(p, prevF, upright); if (!pos) continue;
+      const cost = Math.abs(p - prevP) * .5 + Math.abs(pos.f - prevF) * .3 + (p > 38 ? (p - 38) * .6 : 0)
+        + (upright ? (pos.f === 0 ? -.6 : pos.f > 4 ? (pos.f - 4) * 1.5 : 0) + (p > 36 ? (p - 36) * .4 : 0) : (pos.f > 7 ? 2 : 0));
+      if (!best || cost < best.cost) best = {p, pos, cost};
+    }
+    if (!best) return null;
+    prevP = best.p;
+    if (!upright || best.pos.f) prevF = best.pos.f; // na kontrabasu prázdná struna nemění polohu ruky
+    return {p: best.p, pos: best.pos, hand: upright ? prevF : best.pos.f, q: qualityIntervals(s.suffix)};
+  });
+  const cellsFor = (r, list, next) => { let prev = r.p; return list.map(t => {
+    let p;
+    if (t && typeof t === 'object') p = t.p; // tón vypočtený přechodem/turnaroundem
+    else if (t === '>') p = next ? (Math.abs(next.p - 1 - prev) <= Math.abs(next.p + 1 - prev) ? next.p - 1 : next.p + 1) : r.p + 7;
+    else if (t === '>5') { // kvinta cílového akordu (dominantní přechod), bližší oktáva
+      const tp = next ? next.p : r.p + 5, a = tp + 7, b = tp - 5;
+      p = b >= 28 && Math.abs(b - prev) <= Math.abs(a - prev) ? b : a;
+    }
+    else if (t === '>s') p = next ? (next.p >= prev ? next.p - 2 : next.p + 2) : r.p + 2; // celý tón k dalšímu akordu
+    else {
+      const m = String(t).match(/^([b#]?)(\d+)(,?)$/); if (!m) return null;
+      let iv = {1:0, 2:2, 3:r.q.third ?? 4, 4:5, 5:r.q.fifth, 6:9, 7:r.q.sev ?? 10, 8:12, 9:14, 10:(r.q.third ?? 4) + 12}[+m[2]];
+      if (iv == null) return null;
+      if (m[1] === 'b') iv--; else if (m[1] === '#') iv++;
+      p = r.p + iv - (m[3] ? 12 : 0);
+      if (p < 28) p += 12;
+    }
+    const pos = bassPos(p, r.hand, upright) || bassPos(p - 12, r.hand, upright) || bassPos(p + 12, r.hand, upright);
+    if (pos) prev = BASS_OPEN[pos.s] + pos.f;
+    return pos;
+  }); };
+  // ---- chytré přechody a turnaroundy ----
+  const fills = S().bassFills !== false;
+  const K = c => (c || '').replace(/^\(|\)$/g, '');
+  const flat = vars.flat();
+  const style = flat.some(t => t === '-') || flat.every(t => /^(1|5|8),?$/.test(t)) ? 'static' : vars[0].length >= 6 ? 'eighth' : 'walk';
+  const scaleOf = q => q.fifth === 6 ? [0, 2, 3, 5, 6, 8, 9] : q.third === 3 ? [0, 2, 3, 5, 7, 9, 10] : q.sev === 10 ? [0, 2, 4, 5, 7, 9, 10] : [0, 2, 4, 5, 7, 9, 11];
+  // `slots` tónů vedoucích z `start` k cílovému kořeni `target`: krok po stupnici + chromatický přechod,
+  // když na to není místo, tak obklíčení cíle (tón nad / pod)
+  const walkTo = (r, start, target, slots) => {
+    if (slots <= 0) return [];
+    const up = target >= start;
+    let appr = up ? target - 1 : target + 1;
+    if (appr === start) appr = up ? target + 1 : target - 1; // cíl o půltón vedle: přijdi z druhé strany
+    if (slots === 1) return [{p: appr}];
+    const sc = scaleOf(r.q), inS = x => sc.includes(((x - r.p) % 12 + 12) % 12), need = slots - 1;
+    const between = []; const d = appr > start ? 1 : -1;
+    for (let x = start + d; d > 0 ? x < appr : x > appr; x += d) between.push(x);
+    const pick = list => Array.from({length: need}, (_, i) => ({p: list[Math.floor((i + 1) * list.length / (need + 1))]}));
+    const sca = between.filter(inS);
+    if (sca.length >= need) return pick(sca).concat({p: appr});        // po stupnici
+    if (between.length >= need) {                                       // stupnice + chromatika (G A B♭ H → C)
+      const ch = sca.concat(between.filter(x => !inS(x)).sort((a, b) => Math.abs(a - appr) - Math.abs(b - appr)).slice(0, need - sca.length));
+      return ch.sort((a, b) => d * (a - b)).map(p => ({p})).concat({p: appr});
+    }
+    // málo místa: akordický tón blízko cíle a obklíčení cíle (tón vedle, pak z druhé strany)
+    const ct = [r.q.third ?? 4, r.q.fifth ?? 7, 12, (r.q.fifth ?? 7) - 12, (r.q.third ?? 4) - 12, 0]
+      .map(iv => r.p + iv).filter(x => x >= 28 && x <= 52 && Math.abs(x - target) > 1 && x !== start)
+      .sort((a, b) => Math.abs(a - target) - Math.abs(b - target)).slice(0, slots - 2)
+      .sort((a, b) => Math.abs(b - target) - Math.abs(a - target)).map(p => ({p}));
+    const m = ct.length ? ct[ct.length - 1].p : start, near = m >= target ? target + 1 : target - 1, far = near > target ? target - 1 : target + 1;
+    return ct.concat(far < 28 || far > 52 ? [{p: 2 * near - target}, {p: near}] : [{p: near}, {p: far}]);
+  };
+  const lastP = (r, list) => { const c = cellsFor(r, list, null).filter(Boolean).pop(); return c ? BASS_OPEN[c.s] + c.f : r.p; };
+  // počet taktů každého akordu a běhy stejného akordu za sebou
+  const nb = roots.slice(0, nBars).map((_, i) => { const n = (counts && counts[i]) || 1; return n < 1 ? 1 : Math.round(n); });
+  const runInfo = [];
+  for (let i = 0; i < nBars;) {
+    let j = i; while (j + 1 < nBars && K(chords[j + 1]) === K(chords[i])) j++;
+    let total = 0; for (let x = i; x <= j; x++) total += nb[x];
+    const after = chords[j + 1]; // může to být i akord z dalšího řádku
+    const cont = after != null && K(after) === K(chords[i]);
+    let pos = 0; for (let x = i; x <= j; x++) { runInfo[x] = {start: pos, total, change: after != null && !cont}; pos += nb[x]; }
+    i = j + 1;
+  }
+  const bars = [];
+  roots.slice(0, nBars).forEach((r, i) => {
+    const n = (counts && counts[i]) || 1;
+    const nextI = roots.findIndex((x, j) => j > i && x), next = nextI > 0 ? roots[nextI] : null;
+    const sameNext = chords[i + 1] != null && K(chords[i + 1]) === K(chords[i]);
+    const ri = runInfo[i];
+    const reps = n < 1 ? [vars[bi++ % vars.length]].map(t => ({toks: t, list: t.slice(0, Math.max(1, Math.ceil(t.length * n)))}))
+      : Array.from({length: Math.round(n)}, () => { const t = vars[bi++ % vars.length]; return {toks: t, list: t}; });
+    reps.forEach(({toks, list}, k) => {
+      const last = k === reps.length - 1;
+      const name = k === 0 ? chords[i] + (n > 1 ? ' ×' + n : n < 1 ? ' ' + fmtBars(n) : '') : '';
+      const len = list.length / toks.length;
+      if (!r) { bars.push({name, len, cells: list.map(() => null)}); return; }
+      let cl = (last && !sameNext) || fills ? list : list.map(t => t[0] === '>' ? '5' : t);
+      const tgt = (last && !sameNext) ? next : r; // akord se opakuje → přechod zpět na vlastní kořen
+      const L = list.length, posInRun = ri.start + k;
+      const changes = fills && next && ri.change && last && !sameNext && next.p % 12 !== r.p % 12;
+      if (fills && n < 1 && changes && style !== 'static') {
+        // dva (či více) akordů v taktu: kořen a hned vedení k dalšímu akordu
+        cl = L === 1 ? ['1'] : style === 'eighth' && L >= 4 ? list.slice(0, L - 2).concat(walkTo(r, lastP(r, list.slice(0, L - 2)), next.p, 2)) : ['1'].concat(walkTo(r, r.p, next.p, L - 1));
+      } else if (changes && ri.total >= 2 && posInRun === ri.total - 1 && L >= 2) {
+        // turnaround v posledním taktu akordu, který trval víc taktů
+        if (style === 'static') { const h = Math.ceil(L / 2); cl = list.slice(0, h).concat(walkTo(r, lastP(r, list.slice(0, h)), next.p, L - h)); }
+        else if (style === 'eighth') cl = list.slice(0, L - 2).concat(walkTo(r, lastP(r, list.slice(0, L - 2)), next.p, 2));
+        else cl = ['1'].concat(walkTo(r, r.p, next.p, L - 1));
+      } else if (fills && style === 'walk' && vars.length === 1 && ri.total >= 2 && posInRun % 2 === 1 && n >= 1 && (L === 4 || L === 3)) {
+        // obměna v prostředních taktech dlouhého akordu: z oktávy dolů
+        cl = L === 4 ? ['8', r.q.sev != null ? '7' : '6', '5', '3'] : ['8', '5', '3'];
+      }
+      bars.push({name, len, cells: cellsFor(r, cl, fills ? tgt : next)});
+    });
+  });
+  return bars;
+}
+function bassRender(bars, perRowChars, suffix, upright) {
+  if (!bars.length) return {text: '', pos: [], rows: 5};
+  const rendered = bars.map(b => {
+    const str = ['', '', '', ''];
+    let fing = '', off = 0; const cp = [];
+    // prstoklad pro kontrabas (1-2-4): poloha se volí tak, aby nejvyšší tón v taktu bral 4. prst
+    // (G na struně E = 4. prst v půlpoloze, F = 1. prst…)
+    const fr = b.cells.filter(c => c && c.f > 0).map(c => c.f), base = fr.length ? Math.max(1, Math.max(...fr) - 2) : 0;
+    b.cells.forEach(c => {
+      const w = c ? String(c.f).length + 2 : 3;
+      cp.push(c ? {off: off + 1, w: String(c.f).length} : null); off += w;
+      for (let s = 0; s < 4; s++) str[s] += (c && c.s === s ? '-' + c.f : '').padEnd(w, '-');
+      if (upright) fing += (c ? ' ' + (c.f === 0 ? '0' : (c.f < base ? '1' : ['1', '2', '4'][c.f - base] || '4')) : '').padEnd(w, ' ');
+    });
+    const width = Math.max(str[0].length + 1, b.name.length + 2);
+    return {head: b.name.padEnd(width, ' '), str: str.map(x => x.padEnd(width - 1, '-') + '|'), fing: fing.padEnd(width, ' '), width, cp};
+  });
+  const out = [], pos = []; let row = [], g = 0;
+  const flush = () => {
+    if (!row.length) return;
+    out.push(('  ' + row.map(r => r.head.padEnd(r.width)).join('')).trimEnd() + (out.length ? '' : suffix || ''));
+    for (const s of [3, 2, 1, 0]) out.push('GDAE'[3 - s] + '|' + row.map(r => r.str[s]).join(''));
+    if (upright) out.push('P ' + row.map(r => r.fing).join('').trimEnd());
+    row = []; g++;
+  };
+  let used = 0;
+  for (const r of rendered) {
+    if (row.length && used + r.width > perRowChars) { flush(); used = 0; }
+    pos.push(r.cp.map(c => c && {g, col: 2 + used + c.off, w: c.w}));
+    row.push(r); used += r.width;
+  }
+  flush();
+  return {text: out.join('\n'), pos, rows: upright ? 6 : 5};
+}
+/* ---- vlastní (ručně upravený) tab: {x_btab: D: A5 - E0 - | G: E3 - D5 -} ---- */
+function parseBtab(v) {
+  return String(v).split('|').map(seg => {
+    seg = seg.trim(); let name = '';
+    const m = seg.match(/^([^:]*):\s*/); if (m) { name = m[1].trim(); seg = seg.slice(m[0].length); }
+    const lm = name.match(/\s*(¼|½)$/), len = lm ? (lm[1] === '¼' ? .25 : .5) : 1;
+    const cells = seg.split(/\s+/).filter(Boolean).map(t => { const x = t.match(/^([EADG])(\d{1,2})$/i); return x ? {s: 'EADG'.indexOf(x[1].toUpperCase()), f: Math.min(24, +x[2])} : null; });
+    return {name, len, cells};
+  }).filter(b => b.cells.length);
+}
+function serializeBtab(bars) {
+  return bars.map(b => {
+    const nm = (b.name || '').replace(/[:|{}]/g, '').trim() + (b.len < 1 ? ' ' + fmtBars(b.len) : '');
+    return (nm.trim() ? nm.trim() + ': ' : '') + b.cells.map(c => c ? 'EADG'[c.s] + c.f : '-').join(' ');
+  }).join(' | ');
+}
+function btabTranspose(bars, tr, upright) {
+  tr = ((tr % 12) + 18) % 12 - 6; if (!tr) return bars;
+  return bars.map(b => ({len: b.len, name: b.name.replace(/[A-H][^\s()]*/, c => isChord(c) ? transposeChord(c, tr) : c),
+    cells: b.cells.map(c => { if (!c) return null; const p = BASS_OPEN[c.s] + c.f + tr; return bassPos(p, c.f, upright) || bassPos(p + 12, c.f, upright) || bassPos(p - 12, c.f, upright); })}));
+}
+function lineBars(l, o) {
+  const up = o.bassInstr === 'upright';
+  if (l.btab) return {bars: btabTranspose(parseBtab(l.btab), o.tr, up), custom: true};
+  if (!l.chs.length && !l.carry) return null;
+  const T = c => transposeChord(c, o.tr);
+  const list = (l.carry ? ['(' + T(l.carry) + ')'] : []).concat(l.chs.map(T));
+  return {bars: bassBars(list, o.bassPat, l.next ? T(l.next) : null, l.bars, up), custom: false};
+}
+
+/* ---- přehrávání basy (Web Audio, syntéza drnknuté struny – funguje offline) ---- */
+const BA = {ctx: null, bufs: new Map(), master: null, raf: 0, loopT: 0, cur: null};
+function bassCtx() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {} // iPhone: hraj i s tichým režimem
+  if (!BA.ctx) {
+    BA.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Safari/iPhone: zvuk se „odemkne“ jen přehráním něčeho přímo při kliknutí
+    try { const b = BA.ctx.createBuffer(1, 1, 22050), s = BA.ctx.createBufferSource(); s.buffer = b; s.connect(BA.ctx.destination); s.start(0); } catch (e) {}
+  }
+  if (BA.ctx.state !== 'running') { const r = BA.ctx.resume(); if (r && r.catch) r.catch(() => {}); }
+  return BA.ctx;
+}
+function pluckBuf(midi, upright) {
+  const key = midi + (upright ? 'u' : 'e'); if (BA.bufs.has(key)) return BA.bufs.get(key);
+  const ctx = bassCtx(), sr = ctx.sampleRate, f = 440 * Math.pow(2, (midi - 69) / 12);
+  const L = Math.floor(sr * (upright ? 2 : 2.6)), buf = ctx.createBuffer(1, L, sr), y = buf.getChannelData(0);
+  // aditivní syntéza drnknuté struny: spektrum podle místa drnknutí, vyšší alikvóty odumírají rychleji,
+  // kontrabas = měkké drnknutí prstem daleko od kobylky, rezonance těla, „buc“ a lehký pokles ladění na začátku
+  const P = upright
+    ? {beta: .23, roll: 1.35, fc: 650, tau: .8, dk: .09, glide: .012, gt: .045, thump: .5, att: .006, body: .7}
+    : {beta: .13, roll: 1.1, fc: 1700, tau: 2.2, dk: .025, glide: .004, gt: .03, thump: .15, att: .003, body: .15};
+  const att = Math.floor(P.att * sr);
+  for (let k = 1; k <= 30; k++) {
+    const fk = f * k * Math.sqrt(1 + .00012 * k * k); if (fk > 6000) break;
+    let a = Math.abs(Math.sin(Math.PI * k * P.beta)) / Math.pow(k, P.roll) / (1 + Math.pow(fk / P.fc, 2));
+    a *= 1 + P.body * Math.exp(-Math.pow((fk - 120) / 60, 2)) + P.body * .5 * Math.exp(-Math.pow((fk - 230) / 80, 2));
+    if (fk < 70) a *= .6 + .4 * fk / 70; // nejhlubší fundament reproduktory stejně nezahrají
+    const tau = P.tau / (1 + P.dk * (k - 1) * (k - 1)), n = Math.min(L, Math.floor(tau * 7 * sr)), w = 2 * Math.PI * fk, ph = Math.random() * .3;
+    for (let i = 0; i < n; i++) {
+      const t = i / sr, tt = t + P.glide * P.gt * (1 - Math.exp(-t / P.gt));
+      y[i] += a * Math.sin(w * tt + ph) * Math.exp(-t / tau);
+    }
+  }
+  // „buc“ prstu o hmatník: krátký tlumený šum
+  let lp = 0, lp2 = 0; const n2 = Math.floor(.06 * sr), c = 2 * Math.PI * 260 / sr;
+  for (let i = 0; i < n2; i++) { lp += c * ((Math.random() * 2 - 1) - lp); lp2 += c * (lp - lp2); y[i] += P.thump * 6 * lp2 * Math.exp(-i / sr / .018); }
+  for (let i = 0; i < att; i++) y[i] *= i / att;
+  let pk = 0; for (let i = 0; i < L; i++) pk = Math.max(pk, Math.abs(y[i]));
+  for (let i = 0; i < L; i++) y[i] = Math.tanh(1.3 * y[i] / (pk || 1)) / Math.tanh(1.3); // jemná saturace = teplejší, slyšitelnější i z malých repro
+  BA.bufs.set(key, buf); return buf;
+}
+function bassNote(midi, t, dur, upright, vol = .8) {
+  const ctx = BA.ctx, src = ctx.createBufferSource(), g = ctx.createGain();
+  src.buffer = pluckBuf(midi, upright);
+  g.gain.setValueAtTime(vol, t); g.gain.setTargetAtTime(0, t + Math.max(.03, dur - .03), .035);
+  src.connect(g); g.connect(BA.master); src.start(t); src.stop(t + dur + .3);
+}
+function bassClick(t, accent) {
+  const ctx = BA.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.value = accent ? 1760 : 1180;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(accent ? .35 : .22, t + .002); g.gain.exponentialRampToValueAtTime(.0001, t + .05);
+  o.connect(g); g.connect(BA.master); o.start(t); o.stop(t + .06);
+}
+// items: [{bars, ref}] → noty v dobách; "-" prodlužuje předchozí tón
+function bassEvents(items, bpb) {
+  const ev = []; let t = 0, last = null;
+  items.forEach((it, ii) => it.bars.forEach((b, bi) => {
+    const step = bpb * (b.len || 1) / Math.max(1, b.cells.length);
+    b.cells.forEach((c, ci) => {
+      if (c) { last = {t, dur: step, midi: BASS_OPEN[c.s] + c.f, item: ii, bar: bi, cell: ci}; ev.push(last); }
+      else if (last) last.dur += step;
+      t += step;
+    });
+  }));
+  return {ev, total: t};
+}
+function bassStop() {
+  clearTimeout(BA.raf); clearTimeout(BA.loopT);
+  if (BA.master) { try { BA.master.gain.setTargetAtTime(0, BA.ctx.currentTime, .02); const m = BA.master; setTimeout(() => m.disconnect(), 200); } catch (e) {} BA.master = null; }
+  const c = BA.cur; BA.cur = null;
+  if (c && c.onStep) c.onStep(null);
+  if (c && c.onEnd) c.onEnd();
+}
+function bassPlay(items, o) {
+  try { bassPlay0(items, o); }
+  catch (e) { toast('Zvuk se nepodařilo přehrát: ' + e.message); console.error(e); bassStop(); }
+}
+function bassPlay0(items, o) {
+  bassStop();
+  const ctx = bassCtx(), bpm = Math.max(30, Math.min(300, o.bpm || 90)), spb = 60 / bpm, bpb = o.bpb || 4;
+  const {ev, total} = bassEvents(items, bpb);
+  if (!ev.length) return;
+  if (o.swing) { // triolový swing: druhá osmina doby se posune na poslední třetinu
+    const w = t => { const b = Math.floor(t + 1e-9), f = t - b; return b + (f < .5 ? f * 4 / 3 : 2 / 3 + (f - .5) * 2 / 3); };
+    for (const e of ev) { const a = w(e.t), z = w(e.t + e.dur); e.t = a; e.dur = z - a; }
+  }
+  const kind = o.upright; new Set(ev.map(e => e.midi)).forEach(m => pluckBuf(m, kind)); // tóny připravit předem, ať nezačínají pozdě
+  setTimeout(() => { if (BA.cur && ctx.state !== 'running') toast('Prohlížeč zvuk zablokoval – klikni na ▶ ještě jednou a zkontroluj hlasitost / ztlumení.'); }, 700);
+  BA.master = ctx.createGain(); BA.master.gain.value = .9; BA.master.connect(ctx.destination);
+  const cnt = o.countIn ? bpb : 0, t0 = ctx.currentTime + .08 + cnt * spb;
+  for (let i = 0; i < cnt; i++) bassClick(t0 - (cnt - i) * spb, i === 0);
+  if (o.click) for (let b = 0; b < total - 1e-6; b++) bassClick(t0 + b * spb, b % bpb === 0);
+  for (const e of ev) bassNote(e.midi, t0 + e.t * spb, e.dur * spb, o.upright);
+  const cur = BA.cur = {onStep: o.onStep, onEnd: o.onEnd}; let shown = -1;
+  const tick = () => {
+    if (BA.cur !== cur) return;
+    const now = (ctx.currentTime - t0) / spb;
+    if (now >= total) {
+      if (o.loop) { BA.cur = null; BA.loopT = setTimeout(() => bassPlay(items, Object.assign({}, o, {countIn: false})), 0); return; }
+      return bassStop();
+    }
+    let i = shown; while (i + 1 < ev.length && ev[i + 1].t <= now) i++;
+    if (i !== shown && i >= 0) { shown = i; o.onStep && o.onStep(ev[i], items[ev[i].item]); }
+    BA.raf = setTimeout(tick, 25);
+  };
+  BA.raf = setTimeout(tick, 25);
+}
+function songBpb(p) { const m = String(p.meta.time || '').match(/^(\d+)\//); return m ? Math.max(1, Math.min(12, +m[1])) : 4; }
+function songSwing(p) { return /^(1|ano|on|yes|true|swing)$/i.test(String(p.meta.x_swing || '').trim()); }
+function songBpm(p) { return parseInt(p.meta.tempo) || 90; }
+// kurzor nad právě hraným tónem v zobrazeném tabu
+const bassReg = new Map();
+function bassCursor(src, ev) {
+  $$('.bcur').forEach(x => x.remove()); $$('.btw.playing').forEach(x => x.classList.remove('playing'));
+  if (!ev) return;
+  const w = $(`.btw[data-src="${src}"]`), r = bassReg.get(src);
+  if (!w || !r) return;
+  w.classList.add('playing');
+  const ps = r.pos[ev.bar] && r.pos[ev.bar][ev.cell]; if (!ps) return;
+  const pre = w.querySelector('pre');
+  if (!pre._cw) { const sp = document.createElement('span'); sp.textContent = '0000000000'; pre.appendChild(sp); pre._cw = sp.getBoundingClientRect().width / 10; pre._lh = parseFloat(getComputedStyle(pre).lineHeight) || sp.getBoundingClientRect().height; sp.remove(); }
+  const cs = getComputedStyle(pre), c = document.createElement('i'); c.className = 'bcur';
+  c.style.left = (parseFloat(cs.paddingLeft) + ps.col * pre._cw - 1) + 'px';
+  c.style.top = (parseFloat(cs.paddingTop) + (ps.g * r.rows + 1) * pre._lh) + 'px';
+  c.style.width = (ps.w * pre._cw + 2) + 'px'; c.style.height = 4 * pre._lh + 'px';
+  pre.appendChild(c);
+}
+function playOpts(song, extra) {
+  const p = P(song), st = S();
+  return Object.assign({bpm: songBpm(p), bpb: songBpb(p), upright: st.bassSound !== 'electric', click: st.bassClick, swing: songSwing(p)}, extra);
+}
+function playLine(song, src) {
+  const o = viewOpts(song);
+  for (const b of P(song).blocks) for (const l of b.lines) if (l.t === 'ly' && l.src === src) {
+    const lb = lineBars(l, o); if (!lb) return;
+    bassPlay([{bars: lb.bars, src}], playOpts(song, {loop: S().bassLoop, onStep: (e, it) => bassCursor(it && it.src, e), onEnd: bassBtns}));
+    bassBtns(src);
+  }
+}
+function playSong(song) {
+  const o = viewOpts(song), p = P(song), items = [];
+  let lastChorus = null;
+  const add = (b, refSrc) => { for (const l of b.lines) if (l.t === 'ly') { const lb = lineBars(l, o); if (lb && lb.bars.length) items.push({bars: lb.bars, src: l.src, ref: refSrc}); } };
+  for (const b of p.blocks) {
+    if (b.type === 'chorus') lastChorus = b;
+    if (b.type === 'chorusref') { const ch = p.blocks.find(x => x.type === 'chorus' && x.label && x.label === b.label) || lastChorus || p.blocks.find(x => x.type === 'chorus'); if (ch) add(ch, b.src); }
+    else if (b.type !== 'tab') add(b);
+  }
+  if (!items.length) return;
+  let lastSrc = null;
+  bassPlay(items, playOpts(song, {countIn: true, onEnd: bassBtns, onStep: (e, it) => {
+    if (!e) return bassCursor(null, null);
+    bassCursor(it.src, e);
+    if (it.src !== lastSrc) {
+      lastSrc = it.src;
+      $$('.ln.bhl, .blk.bhl').forEach(x => x.classList.remove('bhl'));
+      const el = (it.ref != null && $(`.blk[data-src="${it.ref}"]`)) || $(`.ln[data-src="${it.src}"]`);
+      if (el) { el.classList.add('bhl'); const r = el.getBoundingClientRect(), m = $('#main').getBoundingClientRect(); if (r.top < m.top + 60 || r.bottom > m.bottom - 40) el.scrollIntoView({block: 'center', behavior: 'smooth'}); }
+    }
+  }}));
+  bassBtns('all');
+}
+function bassBtns(which) {
+  if (!BA.cur) which = null;
+  $$('[data-act="bplay"]').forEach(b => { const on = which != null && which !== 'all' && +b.closest('.btw').dataset.src === which; b.textContent = on ? '■' : '▶'; b.classList.toggle('on', on); });
+  const all = $('[data-act="bplayall"]'); if (all) { all.textContent = which === 'all' ? '■ Zastavit' : '▶ Přehrát basu'; all.classList.toggle('on', which === 'all'); }
+  if (which == null) $$('.bhl').forEach(x => x.classList.remove('bhl'));
+}
+
+/* ---- editor basového tabu (mřížka) ---- */
+function btabModal(song, src) {
+  let line = null;
+  for (const b of P(song).blocks) for (const l of b.lines) if (l.t === 'ly' && l.src === src) line = l;
+  if (!line) return;
+  const o = Object.assign(viewOpts(song), {tr: 0}), up = o.bassInstr === 'upright';
+  const fresh = () => { const lb = lineBars(Object.assign({}, line, {btab: null}), o); return lb ? lb.bars : []; };
+  const clone = bs => bs.map(b => ({name: (b.name || '').replace(/\s*[¼½]$/, ''), len: b.len || 1, cells: b.cells.map(c => c ? {s: c.s, f: c.f} : null)}));
+  let bars = clone(line.btab ? parseBtab(line.btab) : fresh());
+  if (!bars.length) bars = [{name: '', len: 1, cells: [null, null, null, null]}];
+  const text = line.parts.map(p => p.text).join('').trim();
+  const DIVS = [1, 2, 3, 4, 6, 8, 12, 16];
+  const grid = () => bars.map((b, i) => `<div class="bteb" data-i="${i}">
+      <div class="btebh"><input class="btname" data-bn="${i}" value="${esc(b.name)}" placeholder="akord"><button class="ghost" data-act="bxbar" data-i="${i}" title="Smazat takt">×</button></div>
+      <table>${[3, 2, 1, 0].map(s => `<tr><th>${'GDAE'[3 - s]}</th>${b.cells.map((c, j) => `<td><input data-b="${i}" data-j="${j}" data-s="${s}" value="${c && c.s === s ? c.f : ''}" inputmode="numeric" maxlength="2" autocomplete="off"></td>`).join('')}</tr>`).join('')}</table>
+      <div class="btebf"><select data-bdiv="${i}" title="Na kolik dob/kroků je takt rozdělený">${[...new Set(DIVS.concat(b.cells.length))].sort((a, c) => a - c).map(n => `<option value="${n}"${n === b.cells.length ? ' selected' : ''}>${n} ${n === 1 ? 'krok' : n < 5 ? 'kroky' : 'kroků'}</option>`).join('')}</select>
+      <select data-blen="${i}" title="Délka taktu">${[1, .5, .25].map(n => `<option value="${n}"${n === b.len ? ' selected' : ''}>${n === 1 ? 'celý takt' : fmtBars(n) + ' taktu'}</option>`).join('')}</select></div>
+    </div>`).join('') + `<button class="btadd" data-act="baddbar" title="Přidat takt">＋<br>takt</button>`;
+  modal(`<h3>Upravit basový tab</h3>
+    <div class="ctx">${esc(text || '…')}</div>
+    <div class="bted" id="bted">${grid()}</div>
+    <p class="bthelp">Klikni do políčka a napiš číslo pražce (0 = prázdná struna), prázdné políčko = drž předchozí tón. Šipky ← → ↑ ↓ přesouvají, mezerník přehraje. Každý takt má svoje dělení (4 kroky = čtvrťové doby, 8 = osminy).</p>
+    <code class="btdir" id="btdir"></code>
+    <div class="mfoot"><button data-act="btplay" class="pri" id="btplay">▶ Přehrát</button><button data-act="btregen" title="Zahodit úpravy a vygenerovat tab znovu ze vzoru">↺ Ze vzoru</button>${line.btab ? '<button data-act="btdel" class="danger">Smazat vlastní tab</button>' : ''}<span class="sp"></span><button data-act="close">Zrušit</button><button data-act="btok" class="pri">Uložit</button></div>`, e => {
+    const a = e.target.closest('[data-act]')?.dataset.act; if (!a) return;
+    if (a === 'btplay') return toggle();
+    if (a === 'baddbar') { const prev = bars[bars.length - 1]; bars.push({name: '', len: 1, cells: Array((prev && prev.cells.length) || 4).fill(null)}); redraw(); return; }
+    if (a === 'bxbar') { bars.splice(+e.target.closest('[data-i]').dataset.i, 1); redraw(); return; }
+    if (a === 'btregen') { bars = clone(fresh()); redraw(); return; }
+    if (a === 'btdel') { writeDir(null); return; }
+    if (a === 'btok') writeDir(serializeBtab(bars));
+  });
+  $('.mbox').classList.add('wide');
+  const box = $('#bted');
+  const dirPrev = () => { $('#btdir').textContent = `{x_btab: ${serializeBtab(bars)}}`; };
+  const redraw = () => { box.innerHTML = grid(); dirPrev(); };
+  const writeDir = val => {
+    bassStop();
+    const lines = song.text.split('\n'), dir = val ? `{x_btab: ${val}}` : null;
+    if (line.btabSrc != null) { if (dir) lines[line.btabSrc] = dir; else lines.splice(line.btabSrc, 1); }
+    else if (dir) lines.splice(line.src, 0, dir);
+    song.text = lines.join('\n'); song.updated = Date.now(); save(); closeModal(); renderView(true);
+  };
+  const mark = (ev) => { $$('#bted td.hl').forEach(x => x.classList.remove('hl')); if (ev) $$(`#bted input[data-b="${ev.bar}"][data-j="${ev.cell}"]`).forEach(x => x.parentNode.classList.add('hl')); };
+  const toggle = () => {
+    if (BA.cur && BA.cur.editor) { bassStop(); return; }
+    bassPlay([{bars}], playOpts(song, {loop: S().bassLoop, onStep: mark, onEnd: () => { mark(null); const b = $('#btplay'); if (b) b.textContent = '▶ Přehrát'; }}));
+    if (BA.cur) { BA.cur.editor = true; $('#btplay').textContent = '■ Zastavit'; }
+  };
+  box.addEventListener('focusin', e => { if (e.target.select) e.target.select(); });
+  box.addEventListener('input', e => {
+    const t = e.target;
+    if (t.dataset.bn != null) { bars[+t.dataset.bn].name = t.value; dirPrev(); return; }
+    if (t.dataset.b == null) return;
+    const b = bars[+t.dataset.b], j = +t.dataset.j, sI = +t.dataset.s;
+    t.value = t.value.replace(/\D/g, '');
+    if (t.value === '') { if (b.cells[j] && b.cells[j].s === sI) b.cells[j] = null; }
+    else {
+      b.cells[j] = {s: sI, f: Math.min(24, +t.value)};
+      $$(`#bted input[data-b="${t.dataset.b}"][data-j="${j}"]`).forEach(x => { if (x !== t) x.value = ''; });
+      if (BA.master == null) { const ctx = bassCtx(); BA.master = ctx.createGain(); BA.master.connect(ctx.destination); BA.master.gain.value = .9; }
+      bassNote(BASS_OPEN[sI] + b.cells[j].f, BA.ctx.currentTime + .02, .6, S().bassSound !== 'electric');
+    }
+    dirPrev();
+  });
+  box.addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.bdiv != null) {
+      const b = bars[+t.dataset.bdiv], n = +t.value, old = b.cells, out = Array(n).fill(null);
+      old.forEach((c, j) => { if (!c) return; const k = Math.round(j * n / old.length); if (k < n && !out[k]) out[k] = c; });
+      b.cells = out; redraw();
+    } else if (t.dataset.blen != null) { bars[+t.dataset.blen].len = +t.value; dirPrev(); }
+  });
+  box.addEventListener('keydown', e => {
+    const t = e.target; if (t.dataset.b == null) return;
+    if (e.key === ' ') { e.preventDefault(); toggle(); return; }
+    let b = +t.dataset.b, j = +t.dataset.j, s = +t.dataset.s;
+    if (e.key === 'ArrowUp') s = Math.min(3, s + 1);
+    else if (e.key === 'ArrowDown') s = Math.max(0, s - 1);
+    else if (e.key === 'ArrowRight' || e.key === 'Tab' && !e.shiftKey) { if (++j >= bars[b].cells.length) { if (b + 1 >= bars.length) { if (e.key === 'Tab') return; j--; } else { b++; j = 0; } } }
+    else if (e.key === 'ArrowLeft' || e.key === 'Tab') { if (--j < 0) { if (b === 0) { if (e.key === 'Tab') return; j = 0; } else { b--; j = bars[b].cells.length - 1; } } }
+    else return;
+    e.preventDefault();
+    const n = $(`#bted input[data-b="${b}"][data-j="${j}"][data-s="${s}"]`); if (n) n.focus();
+  });
+  dirPrev();
+}
+function lineHTML(l, o) {
+  const nh = notesHTML(l.notes, o);
+  if (l.t === 'blank') return '<div class="ln">&nbsp;</div>';
+  if (l.t === 'nl') return nh ? `<div class="ln" data-src="${l.src}">${nh}</div>` : '';
+  if (l.t === 'cmt') return `<div class="ln cmt" data-src="${l.src}">${nh}<span class="lt">${esc(l.text)}</span></div>`;
+  if (l.t === 'tab') return `<div class="ln tab" data-src="${l.src}">${nh}<div class="lt">${esc(l.text) || '&nbsp;'}</div></div>`;
+  const hc = o.chords && l.parts.some(p => p.chord != null);
+  let bt = '';
+  if (o.bass && o.bassPos !== 'block' && (l.chs.length || l.carry || l.btab)) {
+    const lb = lineBars(l, o), r = lb && bassRender(lb.bars, o.bassWidth || 56, lb.custom && !o.print ? '   ✎ vlastní' : '', o.bassInstr === 'upright');
+    if (r && r.text) {
+      if (o.print) bt = `<pre class="btab bline">${esc(r.text)}</pre>`;
+      else {
+        bassReg.set(l.src, r);
+        bt = `<div class="btw" data-src="${l.src}"><pre class="btab bline${lb.custom ? ' custom' : ''}" title="${lb.custom ? 'Klikni pro úpravu tabu' : 'Klikni pro nastavení počtu taktů'}">${esc(r.text)}</pre><span class="btact"><button data-act="bplay" title="Přehrát řádek">▶</button><button data-act="bedit" title="Upravit tab (napsat vlastní)">✎</button></span></div>`;
+      }
+    }
+  }
+  return `<div class="ln${hc ? ' hc' : ''}" data-src="${l.src}">${nh}${bt}<div class="lt">${lyricHTML(l.parts, o)}</div></div>`;
+}
+function blockHTML(b, o, lines = b.lines) {
+  if (b.type === 'break') return '';
+  if (b.type === 'chorusref') return `<div class="blk" data-src="${b.src}">${notesHTML(b.notes, o)}<div class="chorusref">${esc(b.label)}</div></div>`;
+  const lab = b.label ? `<div class="blab">${esc(b.label)}</div>` : '';
+  let tab = '';
+  if (o.bass && o.bassPos === 'block' && b.type !== 'tab' && lines[0] === b.lines[0]) {
+    const rows = new Map(), lyr = b.lines.filter(l => l.t === 'ly');
+    const lc = l => blockChords({lines: [l]}, o.tr);
+    lyr.forEach((l, i) => {
+      if (l.btab) { const k = 'btab:' + l.btab; if (rows.has(k)) rows.get(k).n++; else rows.set(k, {custom: btabTranspose(parseBtab(l.btab), o.tr, o.bassInstr === 'upright'), n: 1}); return; }
+      const ch = lc(l); if (!ch.length) return;
+      let follow = null;
+      for (let j = i + 1; j < lyr.length && !follow; j++) follow = lc(lyr[j])[0] || null;
+      const k = ch.join(' ') + '>' + (follow || '') + '#' + (l.bars || []).join(',');
+      if (rows.has(k)) rows.get(k).n++; else rows.set(k, {ch, follow, n: 1, bars: l.carry && l.bars ? l.bars.slice(1) : l.bars});
+    });
+    const t = [...rows.values()].map(r => r.custom ? bassRender(r.custom, o.bassWidth || 56, r.n > 1 ? `   (${r.n}×)` : '', o.bassInstr === 'upright').text : bassTab(r.ch, o.bassPat, o.bassWidth || 56, r.follow, r.n > 1 ? `   (${r.n}×)` : '', r.bars, o.bassInstr === 'upright')).filter(Boolean).join('\n');
+    if (t) tab = `<pre class="btab">${esc(t)}</pre>`;
+  }
+  return `<div class="blk b-${b.type}">${lab}${tab}${lines.map(l => lineHTML(l, o)).join('')}</div>`;
+}
+function headHTML(p, o) {
+  const meta = [];
+  if (p.meta.key) meta.push('Tónina: <b>' + esc(transposeChord(p.meta.key, o.tr)) + '</b>');
+  if (p.meta.capo && p.meta.capo !== '0') meta.push('Capo: <b>' + esc(p.meta.capo) + '</b>');
+  if (p.meta.tempo) meta.push('Tempo: ' + esc(p.meta.tempo));
+  if (p.meta.time) meta.push('Takt: ' + esc(p.meta.time));
+  if (o.tr && !o.print) meta.push('Transpozice: ' + (o.tr > 0 ? '+' : '') + o.tr);
+  return `<div class="shead"><h1>${esc(p.title || 'Bez názvu')}</h1>${p.artist ? `<div class="artist">${esc(p.artist)}</div>` : ''}${meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join('')}</div>` : ''}</div>`;
+}
+function songHTML(p, o) {
+  let h = headHTML(p, o);
+  if (o.diagrams && o.chords) h += diagramsHTML(uniqueChords(p, o.tr), o.instrument);
+  else h += '<div style="height:.8em"></div>';
+  for (const b of p.blocks) h += blockHTML(b, o);
+  return h;
+}
+
+/* ============ akordy nad textem → ChordPro ============ */
+const REPEAT_TOK = /^(\|+|:|\|:|:\||\|\||x?\d+x?|\/|-+|%|\.+|\(|\))$/i;
+function isChordLine(line) {
+  if (!line || !line.trim() || /^\s*\{/.test(line)) return false;
+  const toks = line.trim().split(/\s+/);
+  let n = 0;
+  for (const t of toks) { if (isChord(t)) n++; else if (!REPEAT_TOK.test(t)) return false; }
+  return n > 0;
+}
+function convertChordsOverText(text) {
+  const L = cleanText(text).split('\n'), out = [];
+  for (let i = 0; i < L.length; i++) {
+    const a = L[i];
+    if (!isChordLine(a)) { out.push(a); continue; }
+    const ch = [...a.matchAll(/\S+/g)].map(m => ({pos: m.index, c: m[0]}));
+    const b = L[i + 1];
+    if (b != null && b.trim() && !isChordLine(b) && !/^\s*\{/.test(b)) {
+      let s = b; const maxPos = ch[ch.length - 1].pos;
+      if (s.length < maxPos) s = s.padEnd(maxPos, ' ');
+      for (let k = ch.length - 1; k >= 0; k--) s = s.slice(0, ch[k].pos) + '[' + ch[k].c + ']' + s.slice(ch[k].pos);
+      out.push(s.replace(/\s+$/, '')); i++;
+    } else out.push(ch.map(x => '[' + x.c + ']').join(' '));
+  }
+  return out.join('\n');
+}
+
+/* ============ data: načtení, import, export ============ */
+const DEMO = [
+`{title: Ukázková písnička}
+{artist: Zpěvník – vzor}
+{key: G}
+{tempo: 96}
+
+{c: Předehra: G D Emi C}
+
+{sov: 1.}
+[G]Ráno se [D]budím, za [Emi]oknem je [C]mlha,
+[G]káva mi [D]voní a [C]den je jak [D]dlaň.
+[G]Kytaru [D]beru, ať [Emi]ticho se [C]zvedá,
+{x_note: 🎤 zpívá Petra}
+[G]písnička [D]plyne a [C]já [D]jdu [G]s ní.
+{eov}
+
+{soc: R:}
+[C]Hraj, ať to [G]zní,
+{x_note: ⏸ stopka}
+[D]hraj, ať se [Emi]zpívá,
+[C]co bylo [G]včera, to [D]nikdo už [G]neví.
+{eoc}
+
+{sov: 2.}
+[G]Večer se [D]vracím, [Emi]cesta je [C]dlouhá,
+[G]v kapse mám [D]trsátko [C]a v hlavě [D]tón.
+{x_note: 🔇 nehraju}
+[G]Hvězdy se [D]rozsvítí, [Emi]noc tiše [C]čeká,
+[G]až zazní [D]poslední [C]ak[D]ord [G]ven.
+{eov}
+
+{chorus: R: 2×}
+
+{sot: Mezihra}
+e|-----3-----2-----0-----|
+B|---0---0-3---3-1---1---|
+G|-0-------------------0-|
+{eot}`,
+`{title: Skákal pes}
+{artist: lidová}
+{key: G}
+
+[G]Skákal pes [D7]přes oves,
+[G]přes zelenou [D7]louku,
+[G]šel za ním [C]myslivec,
+[G]péro na [D7]klo[G]bouku.`
+];
+function mergeSongs(list) {
+  let added = 0, updated = 0;
+  for (const s of list || []) {
+    if (!s || typeof s.text !== 'string') continue;
+    const ex = s.id && db.songs.find(x => x.id === s.id);
+    if (!ex) { db.songs.push({id: s.id || uid(), text: cleanText(s.text), transpose: s.transpose || 0, updated: s.updated || Date.now()}); added++; }
+    else if ((s.updated || 0) > (ex.updated || 0)) { ex.text = cleanText(s.text); ex.transpose = s.transpose || 0; ex.updated = s.updated; updated++; }
+  }
+  return {added, updated};
+}
+function load() {
+  let had = false;
+  try {
+    const r = localStorage.getItem(LS);
+    if (r) { const d = JSON.parse(r); had = true; db.songs = d.songs || []; db.settings = {...DEF, ...(d.settings || {})}; db.embedSeen = d.embedSeen || 0; db.deleted = d.deleted || {}; }
+  } catch (e) {}
+  let emb = null;
+  try { emb = JSON.parse($('#zpevnik-data').textContent); } catch (e) {}
+  if (emb && Array.isArray(emb.songs) && (emb.exported || 0) > db.embedSeen) {
+    mergeSongs(emb.songs); db.embedSeen = emb.exported || 1;
+    if (!had && emb.settings) db.settings = {...DEF, ...emb.settings};
+  } else if (!had) {
+    db.songs = DEMO.map((t, i) => ({id: 'demo-' + (i + 1), text: t, transpose: 0, updated: 1})); // pevné ID: po smazání jinde zmizí i tady
+  }
+  save();
+}
+function sortedSongs() {
+  return db.songs.slice().sort((a, b) => (P(a).title || '').localeCompare(P(b).title || '', 'cs', {sensitivity:'base'}));
+}
+function backupObj() {
+  return {app:'zpevnik', version:1, exported: Date.now(), songs: db.songs.map(s => ({id:s.id, text:s.text, transpose:s.transpose || 0, updated:s.updated}))};
+}
+const stamp = () => new Date().toISOString().slice(0, 10);
+function exportJSON() { download(`zpevnik-zaloha-${stamp()}.json`, JSON.stringify(backupObj(), null, 1), 'application/json'); }
+function exportCho() { download(`zpevnik-${stamp()}.cho`, sortedSongs().map(s => s.text.trim()).join('\n\n{new_song}\n\n') + '\n', 'text/plain;charset=utf-8'); }
+function exportHTML() {
+  const data = {...backupObj(), settings: {...S(), print: S().print}};
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  const OPEN = '<script id="zpevnik-' + 'data" type="application/json">';
+  const i = TEMPLATE_HTML.indexOf(OPEN);
+  if (i < 0) { toast('Šablonu aplikace se nepodařilo najít.'); return; }
+  const j = TEMPLATE_HTML.indexOf('</' + 'script>', i);
+  const html = TEMPLATE_HTML.slice(0, i + OPEN.length) + json + TEMPLATE_HTML.slice(j);
+  download(`zpevnik-s-pisnemi-${stamp()}.html`, html, 'text/html;charset=utf-8');
+}
+async function importFiles(files) {
+  let added = 0, updated = 0;
+  for (const f of files) {
+    const t = cleanText(await f.text());
+    let parsed = null;
+    if (/^\s*[\[{]\s*["\[{]/.test(t)) { try { parsed = JSON.parse(t); } catch (e) {} }
+    if (parsed) {
+      const r = mergeSongs(Array.isArray(parsed) ? parsed : parsed.songs);
+      added += r.added; updated += r.updated; continue;
+    }
+    const parts = t.split(/^\s*\{\s*(?:new_song|ns)\s*\}\s*$/im);
+    for (let part of parts) {
+      part = part.trim(); if (!part) continue;
+      if (!/\[[^\]]+\]/.test(part)) part = convertChordsOverText(part);
+      if (!/\{\s*(title|t)\s*[:\s]/i.test(part)) {
+        const lines = part.split('\n'); const first = (lines[0] || '').trim();
+        if (parts.length > 1 || (first && !first.includes('[') && !first.startsWith('{') && first.length < 60 && lines.length > 2)) {
+          part = `{title: ${first}}\n` + lines.slice(1).join('\n');
+        } else part = `{title: ${f.name.replace(/\.[^.]+$/, '')}}\n` + part;
+      }
+      db.songs.push({id: uid(), text: part, transpose: 0, updated: Date.now()}); added++;
+    }
+  }
+  save(); renderList();
+  toast(`Importováno: ${added} nových` + (updated ? `, ${updated} aktualizováno` : ''));
+}
+
+/* ============ seznam ============ */
+function renderList() {
+  const q = norm($('#q').value.trim());
+  let items = sortedSongs();
+  if (q) items = items.filter(s => { const p = P(s); return norm(p.title + ' ' + p.artist).includes(q) || (q.length > 2 && norm(s.text.replace(/\[[^\]]*\]|\{[^}]*\}/g, '')).includes(q)); });
+  $('#count').textContent = q ? `${items.length} z ${db.songs.length} písní` : `${db.songs.length} písní`;
+  $('#list').innerHTML = items.map(s => { const p = P(s); return `<button class="it${s.id === state.id ? ' act' : ''}" data-id="${s.id}"><b>${esc(p.title || 'Bez názvu')}</b>${p.artist ? `<span>${esc(p.artist)}</span>` : ''}</button>`; }).join('') || '<p style="padding:10px;color:var(--muted)">Nic nenalezeno.</p>';
+}
+
+/* ============ zobrazení písně ============ */
+const curSong = () => db.songs.find(s => s.id === state.id);
+function viewOpts(song) { const st = S(); return {tr: song.transpose || 0, chords: st.chords, notes: st.notes, diagrams: st.diagrams, instrument: st.instrument, bass: st.bass && st.chords, bassPat: bassPatternOf(P(song)), bassPos: st.bassPos, bassInstr: st.bassInstr, bassWidth: innerWidth < 600 ? Math.max(26, Math.floor((innerWidth - 84) / (S().font * .6 * .58))) : 70}; }
+function setSongDirective(song, name, value) {
+  const lines = song.text.split('\n');
+  const i = lines.findIndex(l => { const d = l.match(DIR_RE); return d && d[1].toLowerCase() === name; });
+  const line = `{${name}: ${value}}`;
+  if (i >= 0) lines[i] = line;
+  else { let j = 0; while (j < lines.length && DIR_RE.test(lines[j]) && fieldIdx((lines[j].match(DIR_RE)[1] || '').toLowerCase()) >= 0) j++; lines.splice(j, 0, line); }
+  song.text = lines.join('\n'); song.updated = Date.now(); save();
+}
+function bassBarHTML(song) {
+  const pat = bassPatternOf(P(song)), known = BASS_PRESETS.some(p => p[0] === pat);
+  return `<div class="bassbar">𝄢 Basový vzor:
+    <select data-act="bpat">${[...new Set(BASS_PRESETS.map(x => x[2]))].map(g => `<optgroup label="${esc(g)}">${BASS_PRESETS.filter(x => x[2] === g).map(([v, l]) => `<option value="${esc(v)}"${v === pat ? ' selected' : ''}>${esc(l)}</option>`).join('')}</optgroup>`).join('')}<option value=""${known ? '' : ' selected'}>Vlastní…</option></select>
+    <input type="text" data-act="bpatin" value="${esc(pat)}" title="Stupně akordu po dobách: 1 kořen, 2 sekunda, 3 tercie, 4 kvarta, 5 kvinta, 6 sexta, 7 septima, 8 oktáva, b/# = o půltón níž/výš, čárka = o oktávu níž (5,), > = chromatický přechod na další akord, >5 = přes kvintu dalšího akordu, >s = celým tónem, - = drž, | = další varianta pro další takt. Jeden akord = jeden takt.">
+    <select data-act="binstr" title="Nástroj – kontrabas volí nízké polohy, prázdné struny a ukáže prstoklad 1-2-4"><option value="electric"${S().bassInstr !== 'upright' ? ' selected' : ''}>Baskytara</option><option value="upright"${S().bassInstr === 'upright' ? ' selected' : ''}>Kontrabas</option></select>
+    <select data-act="bpos" title="Kde zobrazit tab"><option value="line"${S().bassPos !== 'block' ? ' selected' : ''}>nad každým řádkem</option><option value="block"${S().bassPos === 'block' ? ' selected' : ''}>souhrnně u sloky</option></select>
+    <span class="bplayctl"><button data-act="bplayall" class="pri">▶ Přehrát basu</button>
+    <label title="Tempo (doby za minutu) – uloží se do písně">♩=<input type="number" data-act="btempo" min="30" max="300" value="${songBpm(P(song))}"></label>
+    <select data-act="bsound" title="Zvuk při přehrávání"><option value="upright"${S().bassSound !== 'electric' ? ' selected' : ''}>zvuk: kontrabas</option><option value="electric"${S().bassSound === 'electric' ? ' selected' : ''}>zvuk: baskytara</option></select>
+    <label title="Půltaktové akordy vedou do dalšího akordu, akord přes víc taktů se obmění a v posledním taktu dojde turnaround (běh do dalšího akordu)"><input type="checkbox" data-act="bfills"${S().bassFills !== false ? ' checked' : ''}> chytré přechody</label>
+    <label title="Osminy se hrají „houpavě“ (triolově) – blues, shuffle, boogie, swing"><input type="checkbox" data-act="bswing"${songSwing(P(song)) ? ' checked' : ''}> swing</label>
+    <label><input type="checkbox" data-act="bclick"${S().bassClick ? ' checked' : ''}> metronom</label>
+    <label title="Přehrávání jednoho řádku dokola"><input type="checkbox" data-act="bloop"${S().bassLoop ? ' checked' : ''}> řádek dokola</label></span>
+    <small>▶ u řádku přehraje řádek, ✎ tab ručně upravíš · (G) = akord pokračuje z předchozího řádku ·${S().bassInstr === 'upright' ? ' řádek P = prstoklad (0 prázdná, 1-2-4) ·' : ''} 1 kořen · 3 tercie · 5 kvinta · 8 oktáva · <b>,</b> níž · <b>&gt;</b> přechod · <b>-</b> drž · 1 akord = 1 takt</small></div>`;
+}
+function renderView(keepScroll) {
+  const song = curSong(); if (!song) return;
+  bassStop(); bassReg.clear();
+  const main = $('#main'), top = main.scrollTop, st = S(), tr = song.transpose || 0;
+  main.innerHTML = `<div class="vbar">
+    <button class="mob ghost" data-act="back" title="Zpět">←</button>
+    <div class="grp" title="Transpozice"><button data-act="tr-">−</button><span class="trl">${tr ? (tr > 0 ? '+' : '') + tr : 'tón.'}</span><button data-act="tr+">+</button></div>
+    <select data-act="instr" title="Nástroj pro akordové značky">${Object.entries(INSTR).map(([k, v]) => `<option value="${k}"${k === st.instrument ? ' selected' : ''}>${v.name}</option>`).join('')}</select>
+    <button data-act="tg-diagrams" class="${st.diagrams ? 'on' : ''}" title="Akordové značky (diagramy)">▦</button>
+    <button data-act="tg-bass" class="${st.bass ? 'on' : ''}" title="Basové taby">𝄢<span class="desk"> Basa</span></button>
+    <button data-act="annot" class="${state.annot ? 'on' : ''}" title="Režim poznámek: klikni na řádek a připiš poznámku">✎<span class="desk"> Poznámka</span></button>
+    <button data-act="scroll" title="Automatické posouvání">▶</button>
+    <span class="sp"></span>
+    <button data-act="edit" class="desk">Upravit</button>
+    <button data-act="more" title="Další">⋯</button>
+  </div>
+  <div class="song${state.annot ? ' annot' : ''}" id="songBody" style="font-size:${st.font}px">
+    ${state.annot ? '<div class="annot-tip">Klikni na řádek, ke kterému chceš připsat poznámku (např. „stopka“, „nehraju“, „zpívá Jana“). Kliknutím na existující poznámku ji upravíš.</div>' : ''}
+    ${st.bass && st.chords ? bassBarHTML(song) : ''}
+    ${songHTML(P(song), viewOpts(song))}
+  </div>`;
+  if (keepScroll) main.scrollTop = top; else main.scrollTop = 0;
+}
+function moreMenu() {
+  const st = S();
+  modal(`<h3>Píseň</h3><div class="menu">
+    <button data-m="edit">✏️ Upravit text</button>
+    <button data-m="chords">${st.chords ? '🙈 Skrýt akordy' : '🎸 Zobrazit akordy'}</button>
+    <button data-m="notes">${st.notes ? '🙈 Skrýt poznámky' : '📝 Zobrazit poznámky'}</button>
+    <button data-m="bass">${st.bass ? '𝄢 Skrýt basové taby' : '𝄢 Zobrazit basové taby'}</button>
+    <div style="display:flex;gap:6px"><button data-m="f-" style="flex:1">A− menší písmo</button><button data-m="f+" style="flex:1">A+ větší písmo</button></div>
+    <button data-m="tr0">↺ Zrušit transpozici</button>
+    <button data-m="print">🖨 Vytisknout / PDF této písně</button>
+    <button data-m="cho">⬇ Stáhnout jako ChordPro (.cho)</button>
+    <button data-m="dup">⧉ Duplikovat</button>
+    <button data-m="del" class="danger">🗑 Smazat píseň</button>
+  </div><div class="mfoot"><span class="sp"></span><button data-act="close">Zavřít</button></div>`, e => {
+    const b = e.target.closest('[data-m]'); if (!b) return;
+    const song = curSong(), m = b.dataset.m;
+    if (m === 'f-' || m === 'f+') { st.font = Math.max(11, Math.min(40, st.font + (m === 'f+' ? 2 : -2))); save(); renderView(true); return; }
+    closeModal();
+    if (m === 'edit') location.hash = 'e=' + song.id;
+    else if (m === 'chords') { st.chords = !st.chords; save(); renderView(true); }
+    else if (m === 'notes') { st.notes = !st.notes; save(); renderView(true); }
+    else if (m === 'bass') { st.bass = !st.bass; if (st.bass) st.chords = true; save(); renderView(true); }
+    else if (m === 'tr0') { song.transpose = 0; save(); renderView(true); }
+    else if (m === 'print') printDialog([song.id]);
+    else if (m === 'cho') download((P(song).title || 'pisen').replace(/[\\/:*?"<>|]/g, '') + '.cho', song.text, 'text/plain;charset=utf-8');
+    else if (m === 'dup') {
+      const t = /\{\s*(title|t)\s*:/i.test(song.text) ? song.text.replace(/\{\s*(title|t)\s*:\s*([^}]*)\}/i, (x, a, b) => `{title: ${b.trim()} (kopie)}`) : '{title: Kopie}\n' + song.text;
+      const n = {id: uid(), text: t, transpose: song.transpose || 0, updated: Date.now()};
+      db.songs.push(n); save(); location.hash = 's=' + n.id;
+    }
+    else if (m === 'del') {
+      if (confirm(`Opravdu smazat píseň „${P(song).title}“? Nejde to vrátit (pokud nemáš zálohu).`)) {
+        db.songs = db.songs.filter(s => s !== song); (db.deleted || (db.deleted = {}))[song.id] = Date.now(); save(); location.replace('#');
+      }
+    }
+  });
+}
+
+/* ---- poznámky k řádkům ---- */
+const PRESETS = ['⏸ Stopka', '🔇 Nehraju', '🎤 Zpívá: ', '👥 Všichni', '🎸 Sólo', '🔁 2×', '⏩ Zrychlit', '⏪ Zpomalit', '🤫 Potichu', '🔊 Naplno', '⏹ Konec'];
+function noteModal(song, lineIdx, noteIdx) {
+  const lines = song.text.split('\n');
+  const dm = noteIdx != null ? (lines[noteIdx].match(DIR_RE) || []) : [];
+  const existing = dm[2] || '';
+  let kind = (dm[1] || '').toLowerCase() === 'x_bass' ? 'x_bass' : 'x_note';
+  const lineChords = (lines[noteIdx != null ? noteIdx + 1 : lineIdx] || '').match(/\[[^\]]*\]/g) || [];
+  const bassSuggest = lineChords.map(c => transposeChord(c.slice(1, -1), song.transpose || 0)).filter(isChord).map(c => { const s = splitChord(c); return noteName(s.bass != null ? s.bass : s.root) + ' - ' + noteName((s.bass != null ? s.bass : s.root) + 7) + ' -'; }).join(' | ');
+  const ctxIdx = noteIdx != null ? noteIdx + 1 : lineIdx;
+  let ctx = (lines[ctxIdx] || '').replace(/\[[^\]]*\]/g, '').replace(/^\s*\{\s*[a-z_]+\s*:?\s*(.*?)\}\s*$/i, '$1');
+  modal(`<h3>${noteIdx != null ? 'Upravit poznámku' : 'Přidat poznámku'}</h3>
+    <div class="ctx">${esc(ctx.trim() || '…')}</div>
+    <div class="checks" style="margin:0 0 8px"><label><input type="radio" name="nk" value="x_note"${kind === 'x_note' ? ' checked' : ''}> 📝 Poznámka</label><label><input type="radio" name="nk" value="x_bass"${kind === 'x_bass' ? ' checked' : ''}> 𝄢 Basový vzor nad řádkem</label></div>
+    <input type="text" id="nt" style="width:100%" placeholder="Text poznámky" value="${esc(existing)}">
+    <div class="presets" id="npres"></div>
+    <div class="mfoot">${noteIdx != null ? '<button data-act="ndel" class="danger">Smazat</button>' : ''}<span class="sp"></span><button data-act="close">Zrušit</button><button data-act="nok" class="pri">Uložit</button></div>`, e => {
+    const p = e.target.closest('[data-p]');
+    if (p) { const i = $('#nt'); i.value = p.dataset.p; i.focus(); i.setSelectionRange(i.value.length, i.value.length); return; }
+    const a = e.target.closest('[data-act]')?.dataset.act;
+    if (a === 'nok') {
+      const v = $('#nt').value.replace(/[{}\n\r]/g, ' ').trim();
+      if (!v) return;
+      if (noteIdx != null) lines[noteIdx] = `{${kind}: ${v}}`; else lines.splice(lineIdx, 0, `{${kind}: ${v}}`);
+      commit();
+    } else if (a === 'ndel') { lines.splice(noteIdx, 1); commit(); }
+  });
+  const BASS_PRE = [bassSuggest, 'E . A . | D . A .', '1 - 5 - | 1 - 5 -', 'walk: G A H C | D'].filter(Boolean);
+  const setKind = k => {
+    kind = k;
+    $('#nt').placeholder = k === 'x_bass' ? 'např. G - D - | C - G -' : 'Text poznámky';
+    $('#nt').style.fontFamily = k === 'x_bass' ? 'ui-monospace,Menlo,monospace' : '';
+    $('#npres').innerHTML = (k === 'x_bass' ? BASS_PRE : PRESETS).map(p => `<button data-p="${esc(p)}">${esc(p)}</button>`).join('');
+  };
+  $$('input[name="nk"]').forEach(r => r.addEventListener('change', () => setKind(r.value)));
+  setKind(kind);
+  const commit = () => { song.text = lines.join('\n'); song.updated = Date.now(); save(); closeModal(); renderView(true); };
+  setTimeout(() => $('#nt')?.focus(), 30);
+  $('#nt').addEventListener('keydown', e => { if (e.key === 'Enter') $('[data-act="nok"]').click(); });
+}
+
+/* ---- počet taktů akordů v basovém tabu ---- */
+function barsModal(song, src) {
+  let line = null;
+  for (const b of P(song).blocks) for (const l of b.lines) if (l.t === 'ly' && l.src === src) line = l;
+  if (!line) return;
+  const tr = song.transpose || 0;
+  const list = (line.carry ? [{c: transposeChord(line.carry, tr), carry: true}] : []).concat(line.chs.map(c => ({c: transposeChord(c, tr)})));
+  const cur = list.map((_, i) => (line.bars && line.bars[i]) || 1);
+  const OPTS = [.25, .5, 1, 2, 3, 4, 6, 8];
+  const text = line.parts.map(p => p.text).join('');
+  modal(`<h3>Počet taktů – basový tab</h3>
+    <div class="ctx">${esc(text.trim() || '…')}</div>
+    <div class="barsel">${list.map((x, i) => `<label><b>${esc(x.carry ? '(' + x.c + ')' : x.c)}</b>${x.carry ? '<small>pokračuje</small>' : ''}
+      <select data-bi="${i}">${OPTS.map(n => `<option value="${n}"${n === cur[i] ? ' selected' : ''}>${fmtBars(n)} ${n < 1 ? 'taktu' : n === 1 ? 'takt' : n < 5 ? 'takty' : 'taktů'}</option>`).join('')}</select></label>`).join('')}</div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 0">Uloží se do písně jako <code>{x_bars: …}</code> nad řádkem (jiné aplikace to ignorují).</p>
+    <div class="mfoot"><button data-act="breset">Vše po 1 taktu</button><span class="sp"></span><button data-act="close">Zrušit</button><button data-act="bok" class="pri">Uložit</button></div>`, e => {
+    const a = e.target.closest('[data-act]')?.dataset.act;
+    if (a === 'breset') { $$('.barsel select').forEach(x => x.value = '1'); return; }
+    if (a !== 'bok') return;
+    const vals = $$('.barsel select').map(x => +x.value);
+    const lines = song.text.split('\n');
+    const dir = vals.every(v => v === 1) ? null : `{x_bars: ${vals.map(fmtBars).join(' ')}}`;
+    if (line.barsSrc != null) { if (dir) lines[line.barsSrc] = dir; else lines.splice(line.barsSrc, 1); }
+    else if (dir) lines.splice(line.src, 0, dir);
+    song.text = lines.join('\n'); song.updated = Date.now(); save(); closeModal(); renderView(true);
+  });
+}
+
+/* ---- automatické posouvání + nezhasínání ---- */
+const scr = {on:false, raf:0, acc:0, last:0};
+function startScroll() {
+  scr.on = true; scr.last = performance.now(); scr.acc = 0;
+  const el = $('#main');
+  const step = t => {
+    if (!scr.on) return;
+    const dt = Math.min(.1, (t - scr.last) / 1000); scr.last = t;
+    scr.acc += S().scrollSpeed * dt;
+    const d = Math.floor(scr.acc);
+    if (d) { el.scrollTop += d; scr.acc -= d; }
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) { stopScroll(); return; }
+    scr.raf = requestAnimationFrame(step);
+  };
+  scr.raf = requestAnimationFrame(step);
+  $('#scrollCtl').hidden = false; $('#scSpeed').textContent = S().scrollSpeed;
+  wake(true);
+}
+function stopScroll() { scr.on = false; cancelAnimationFrame(scr.raf); $('#scrollCtl').hidden = true; }
+let wl = null;
+async function wake(on) {
+  try {
+    if (on && S().wake && 'wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => wl = null); }
+    else if (!on && wl) { await wl.release(); wl = null; }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.mode === 'view') wake(true); });
+
+/* ============ editor ============ */
+const NEW_TEMPLATE = `{sov: 1.}
+[C]Text první [G]sloky s [Ami]akordy v [F]hranatých závorkách
+{eov}
+
+{soc: R:}
+[F]Refrén [C]tady, [G]refrén [C]tam
+{eoc}
+`;
+let editDirty = false;
+const HEAD_FIELDS = [
+  {name:'title', aliases:['title','t'], label:'Název písně', ph:'např. Skákal pes', wide:true},
+  {name:'artist', aliases:['artist','a','subtitle','st'], label:'Interpret / autor', ph:'např. lidová', wide:true},
+  {name:'key', aliases:['key'], label:'Tónina', ph:'G'},
+  {name:'capo', aliases:['capo'], label:'Capo', ph:'0'},
+  {name:'tempo', aliases:['tempo'], label:'Tempo', ph:'120'},
+];
+const fieldIdx = k => HEAD_FIELDS.findIndex(f => f.aliases.includes(k));
+function getDir(text, f) {
+  for (const l of text.split('\n')) { const d = l.match(DIR_RE); if (d && f.aliases.includes(d[1].toLowerCase())) return (d[2] || '').trim(); }
+  return '';
+}
+function setDir(text, f, value) {
+  value = String(value).replace(/[{}\r\n]/g, ' ').trim();
+  const lines = text.split('\n');
+  const i = lines.findIndex(l => { const d = l.match(DIR_RE); return d && f.aliases.includes(d[1].toLowerCase()); });
+  if (i >= 0) { if (value) lines[i] = `{${f.name}: ${value}}`; else lines.splice(i, 1); return lines.join('\n'); }
+  if (!value) return text;
+  // vložit do hlavičky na začátku, ve správném pořadí
+  const my = HEAD_FIELDS.indexOf(f); let pos = 0, j = 0;
+  for (; j < lines.length; j++) {
+    const d = lines[j].match(DIR_RE); if (!d) break;
+    const fi = fieldIdx(d[1].toLowerCase()); if (fi < 0) break;
+    if (fi < my) pos = j + 1;
+  }
+  const atEndOfHead = pos === 0 && j === 0;
+  lines.splice(pos, 0, `{${f.name}: ${value}}`);
+  if (atEndOfHead && lines[1] && lines[1].trim()) lines.splice(1, 0, '');
+  return lines.join('\n');
+}
+function renderEdit(isNew) {
+  const song = isNew ? null : curSong();
+  const text = song ? song.text : NEW_TEMPLATE;
+  editDirty = false;
+  $('#main').innerHTML = `<div class="vbar">
+    <button data-act="ecancel">Zrušit</button><b>${isNew ? 'Nová píseň' : 'Úprava'}</b><span class="sp"></span><button data-act="esave" class="pri">Uložit</button></div>
+  <div class="efields">${HEAD_FIELDS.map(f => `<label class="${f.wide ? 'wide' : ''}">${f.label}<input type="text" data-field="${f.name}" placeholder="${esc(f.ph)}" value="${esc(getDir(text, f))}" autocomplete="off"></label>`).join('')}</div>
+  <div class="etools">
+    <button data-ins="chord" title="Vložit akord">[ ] Akord</button>
+    <button data-ins="verse">Sloka</button>
+    <button data-ins="chorus">Refrén</button>
+    <button data-ins="chorusref" title="Odkaz na opakování refrénu">↻ Refrén znovu</button>
+    <button data-ins="comment">Komentář</button>
+    <button data-ins="note">📝 Poznámka</button>
+    <button data-ins="tab">Tabulatura</button>
+    <button data-ins="convert" title="Převede text ve formátu „akordy na řádku nad textem“ (např. zkopírovaný z webu) na ChordPro. Pracuje s označeným textem, jinak s celou písní.">⇄ Akordy nad textem → ChordPro</button>
+  </div>
+  <div class="edit"><textarea id="ta" spellcheck="false" autocapitalize="off" autocomplete="off">${esc(text)}</textarea><div class="song" id="pv"></div></div>
+  <details class="help"><summary>Stručná nápověda k formátu ChordPro</summary>
+    <p><code>{title: Název}</code> <code>{artist: Interpret}</code> <code>{key: G}</code> <code>{capo: 2}</code> <code>{tempo: 120}</code></p>
+    <p>Akordy do hranatých závorek přímo do textu: <code>[Ami]Šel jsem [C]lesem</code>. Česká notace: H = h, B = b (lze změnit v nastavení).</p>
+    <p>Refrén: <code>{soc: R:}</code> … <code>{eoc}</code>, sloka: <code>{sov: 1.}</code> … <code>{eov}</code>, opakování refrénu: <code>{chorus: R:}</code>, komentář: <code>{c: 2× dokola}</code>, tabulatura: <code>{sot}</code> … <code>{eot}</code>.</p>
+    <p>Poznámka k následujícímu řádku: <code>{x_note: ⏸ stopka}</code> – v jiných ChordPro aplikacích se ignoruje. Vlastní basový vzor nad řádkem: <code>{x_bass: G - D - | C - G -}</code>. Počet taktů akordů na následujícím řádku (pro basový tab): <code>{x_bars: 2 1 ½ 1}</code> – v písni stačí kliknout na tab. Ručně upravený tab řádku: <code>{x_btab: D: A5 - E0 - | G: E3 - D5 -}</code> (struna+pražec, - = drž, | = další takt) – v písni tlačítko ✎ u tabu. Vzor pro generovaný basový tab: <code>{x_bass_pattern: 1 - 5, -}</code> (1 kořen, 3 tercie, 5 kvinta, 6 sexta, 7 septima, 8 oktáva, b/# půltón, čárka = níž, &gt; = chromatický přechod, &gt;5 přes kvintu, &gt;s celým tónem, - = drž, | = další varianta pro další takt; jeden akord = jeden takt). Swing osmin: <code>{x_swing: ano}</code>. Nová stránka/sloupec při tisku: <code>{new_page}</code> / <code>{column_break}</code>.</p>
+    <p>Prázdný řádek odděluje sloky – při tisku se sloka nikdy nerozdělí mezi stránky.</p>
+  </details>`;
+  const ta = $('#ta'), pv = $('#pv');
+  const upd = () => { pv.innerHTML = songHTML(parse(ta.value), {tr:0, chords:true, notes:true, diagrams:S().diagrams, instrument:S().instrument}); };
+  const syncFields = () => $$('.efields input').forEach(inp => {
+    if (inp !== document.activeElement) inp.value = getDir(ta.value, HEAD_FIELDS.find(f => f.name === inp.dataset.field));
+  });
+  let t; ta.addEventListener('input', () => { editDirty = true; syncFields(); clearTimeout(t); t = setTimeout(upd, 250); });
+  $$('.efields input').forEach(inp => inp.addEventListener('input', () => {
+    const f = HEAD_FIELDS.find(x => x.name === inp.dataset.field);
+    const before = ta.value, a = ta.selectionStart, b = ta.selectionEnd;
+    ta.value = setDir(before, f, inp.value);
+    const d = ta.value.length - before.length; ta.setSelectionRange(Math.max(0, a + d), Math.max(0, b + d));
+    editDirty = true; clearTimeout(t); t = setTimeout(upd, 150);
+  }));
+  upd();
+  if (isNew) setTimeout(() => $('.efields input')?.focus(), 30);
+}
+function editInsert(kind) {
+  const ta = $('#ta'), a = ta.selectionStart, b = ta.selectionEnd, sel = ta.value.slice(a, b);
+  let ins, caret;
+  const wrap = (o, c) => { ins = `${o}\n${sel || ''}\n${c}`; caret = o.length + 1 + (sel ? sel.length : 0); };
+  switch (kind) {
+    case 'chord': ins = `[${sel}]`; caret = 1 + sel.length; break;
+    case 'verse': wrap('{sov}', '{eov}'); break;
+    case 'chorus': wrap('{soc: R:}', '{eoc}'); break;
+    case 'chorusref': ins = '{chorus: R:}'; caret = ins.length; break;
+    case 'comment': ins = `{c: ${sel}}`; caret = 4 + sel.length; break;
+    case 'note': ins = `{x_note: ${sel}}`; caret = 9 + sel.length; break;
+    case 'tab': wrap('{sot}', '{eot}'); break;
+    case 'convert':
+      if (sel) { ins = convertChordsOverText(sel); caret = ins.length; }
+      else { ta.value = convertChordsOverText(ta.value); ta.dispatchEvent(new Event('input')); toast('Převedeno.'); return; }
+  }
+  ta.setRangeText(ins, a, b, 'end');
+  ta.focus(); ta.setSelectionRange(a + caret, a + caret);
+  ta.dispatchEvent(new Event('input'));
+}
+function editSave() {
+  const text = cleanText($('#ta').value).replace(/\s+$/, '') + '\n';
+  if (!getDir(text, HEAD_FIELDS[0])) { toast('Vyplň prosím název písně.'); $('[data-field="title"]').focus(); return; }
+  let song = state.mode === 'new' ? null : curSong();
+  if (!song) { song = {id: uid(), text, transpose: 0, updated: Date.now()}; db.songs.push(song); }
+  else { song.text = text; song.updated = Date.now(); }
+  editDirty = false; save(); location.replace('#s=' + song.id);
+}
+
+/* ============ tisk / PDF se stránkováním ============ */
+function printDialog(preIds) {
+  const po = Object.assign({paper:'A4', cols:2, font:10, mode:'keep', toc:true, cover:false, chords:true, diagrams:false, notes:false, color:true, title:S().bookTitle || 'Zpěvník'}, S().print || {});
+  const songs = sortedSongs(), sel = new Set(preIds || songs.map(s => s.id));
+  modal(`<h3>Tisk / uložení do PDF</h3>
+    <div class="mgrid">
+      <label>Papír<select id="p_paper"><option value="A4">A4</option><option value="A5">A5</option></select></label>
+      <label>Sloupce na stránce<select id="p_cols"><option value="1">1 sloupec</option><option value="2">2 sloupce</option></select></label>
+      <label>Velikost písma (pt)<input type="number" id="p_font" min="6" max="24" step="0.5"></label>
+      <label>Rozložení písní<select id="p_mode">
+        <option value="keep">Nedělit píseň, pokud se vejde (doporučeno)</option>
+        <option value="page">Každá píseň na novou stránku</option>
+        <option value="flow">Úsporně – dělí se jen mezi slokami</option></select></label>
+      <label style="grid-column:1/-1">Název zpěvníku (titulní strana)<input type="text" id="p_title"></label>
+    </div>
+    <div class="checks">
+      <label><input type="checkbox" id="p_toc"> Obsah s čísly stran</label>
+      <label><input type="checkbox" id="p_cover"> Titulní strana</label>
+      <label><input type="checkbox" id="p_chords"> Akordy</label>
+      <label><input type="checkbox" id="p_diagrams"> Akordové značky (${esc(INSTR[S().instrument].name)})</label>
+      <label><input type="checkbox" id="p_notes"> Moje poznámky</label>
+      <label><input type="checkbox" id="p_bass"> Basové taby</label>
+      <label><input type="checkbox" id="p_color"> Barevně</label>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b style="margin-right:auto">Písně (<span id="p_n"></span>)</b><input type="search" id="p_q" placeholder="Filtrovat"><button data-act="pall">Vše</button><button data-act="pnone">Nic</button></div>
+    <div class="plist">${songs.map(s => `<label><input type="checkbox" value="${s.id}"${sel.has(s.id) ? ' checked' : ''}> ${esc(P(s).title || 'Bez názvu')} <small>${esc(P(s).artist)}</small></label>`).join('')}</div>
+    <div class="mfoot"><span class="sp"></span><button data-act="close">Zrušit</button><button data-act="pgo" class="pri">Vytvořit náhled</button></div>`, e => {
+    const a = e.target.closest('[data-act]')?.dataset.act;
+    const vis = $$('.plist label').filter(l => l.style.display !== 'none').map(l => l.firstElementChild);
+    if (a === 'pall') { vis.forEach(c => c.checked = true); cnt(); }
+    else if (a === 'pnone') { vis.forEach(c => c.checked = false); cnt(); }
+    else if (a === 'pgo') {
+      const o = {paper:$('#p_paper').value, cols:+$('#p_cols').value, font:Math.max(6, +$('#p_font').value || 10), mode:$('#p_mode').value, title:$('#p_title').value,
+        toc:$('#p_toc').checked, cover:$('#p_cover').checked, chords:$('#p_chords').checked, diagrams:$('#p_diagrams').checked, notes:$('#p_notes').checked, bass:$('#p_bass').checked, color:$('#p_color').checked};
+      const ids = $$('.plist input:checked').map(c => c.value);
+      if (!ids.length) { toast('Vyber aspoň jednu píseň.'); return; }
+      S().print = o; save(); closeModal();
+      buildPrint(o, ids);
+    }
+  });
+  const cnt = () => $('#p_n').textContent = $$('.plist input:checked').length + ' vybráno';
+  $('#p_paper').value = po.paper; $('#p_cols').value = po.cols; $('#p_font').value = po.font; $('#p_mode').value = po.mode; $('#p_title').value = po.title;
+  for (const k of ['toc', 'cover', 'chords', 'diagrams', 'notes', 'bass', 'color']) $('#p_' + k).checked = !!po[k];
+  if (preIds && preIds.length === 1) $('#p_toc').checked = false;
+  $('.plist').addEventListener('change', cnt); cnt();
+  $('#p_q').addEventListener('input', e => { const q = norm(e.target.value); $$('.plist label').forEach(l => l.style.display = norm(l.textContent).includes(q) ? '' : 'none'); });
+}
+function makeLayout(cols, colH, measure) {
+  const L = {pages: [], col: 0, y: 0};
+  L.newPage = () => { L.pages.push({cols: Array.from({length: cols}, () => [])}); L.col = 0; L.y = 0; };
+  L.nextCol = () => { if (L.col < cols - 1) { L.col++; L.y = 0; } else L.newPage(); };
+  L.fresh = () => L.col === 0 && L.y === 0;
+  L.put = (html, h) => { L.pages[L.pages.length - 1].cols[L.col].push(html); L.y += h; };
+  L.place = it => {
+    if (it.h <= colH - L.y + .5) return L.put(it.html, it.h);
+    if (it.h <= colH && L.y > 0) { L.nextCol(); return L.put(it.html, it.h); }
+    if (!it.lines) { if (L.y > 0) L.nextCol(); return L.put(it.html, it.h); }
+    let rest = it.lines.slice();
+    while (rest.length) {
+      let n = 0, hh = 0;
+      for (let k = 1; k <= rest.length; k++) { const h = measure(it.make(rest.slice(0, k))); if (h <= colH - L.y + .5) { n = k; hh = h; } else break; }
+      if (!n) { if (L.y > 0) { L.nextCol(); continue; } n = 1; hh = measure(it.make(rest.slice(0, 1))); }
+      L.put(it.make(rest.slice(0, n)), hh); rest = rest.slice(n);
+      if (rest.length) L.nextCol();
+    }
+  };
+  L.trim = () => { while (L.pages.length > 1 && L.pages[L.pages.length - 1].cols.every(c => !c.length)) L.pages.pop(); };
+  L.newPage();
+  return L;
+}
+function buildPrint(o, ids) {
+  const PAPER = {A4: [210, 297], A5: [148, 210]};
+  const [W, H] = PAPER[o.paper] || PAPER.A4;
+  const M = o.paper === 'A5' ? 9 : 12, G = 7, FOOT = 6;
+  const colW = (W - 2 * M - G * (o.cols - 1)) / o.cols, colHmm = H - 2 * M - FOOT, colH = colHmm * 96 / 25.4;
+  $('#pageStyle').textContent = `@page{size:${o.paper};margin:0}`;
+  const pv = $('#printView'); pv.hidden = false;
+  pv.innerHTML = `<div class="ptools"><b id="pinfo">Připravuji…</b><span class="sp"></span><button data-pa="back">← Upravit nastavení</button><button data-pa="close">Zavřít</button><button data-pa="print" class="pri">🖨 Tisk / Uložit jako PDF</button></div><div id="pages" class="${o.color ? '' : 'bw'}" style="--pfont:${o.font}pt"></div>`;
+  const pagesEl = $('#pages');
+  const meas = document.createElement('div'); meas.className = 'pmeasure'; meas.style.width = colW + 'mm'; pagesEl.appendChild(meas);
+  const measure = html => { meas.innerHTML = html; return meas.getBoundingClientRect().height; };
+  const list = sortedSongs().filter(s => ids.includes(s.id));
+  // písně
+  const L = makeLayout(o.cols, colH, measure), starts = [];
+  for (const s of list) {
+    const p = P(s), so = {tr: s.transpose || 0, chords: o.chords, notes: o.notes, diagrams: o.diagrams, instrument: S().instrument, print: true, bass: o.bass && o.chords, bassPat: bassPatternOf(P(s)), bassPos: S().bassPos, bassInstr: S().bassInstr, bassWidth: Math.floor(colW / (o.font * .68 * .6 * 25.4 / 72)) - 3};
+    const head = `<div class="pb ps-head">${headHTML(p, so)}${so.diagrams && so.chords ? diagramsHTML(uniqueChords(p, so.tr), so.instrument) : ''}</div>`;
+    const items = [{html: head, h: measure(head)}];
+    for (const b of p.blocks) {
+      if (b.type === 'break') { items.push({brk: true}); continue; }
+      const make = lines => `<div class="pb">${blockHTML(b, so, lines)}</div>`;
+      const html = make(b.lines);
+      items.push({html, h: measure(html), lines: b.lines.length > 1 ? b.lines : null, make});
+    }
+    const total = items.reduce((a, i) => a + (i.h || 0), 0);
+    const headPair = items[0].h + Math.min(items[1]?.h || 0, colH * .3);
+    if (o.mode === 'page') { if (!L.fresh()) L.newPage(); }
+    else if (o.mode === 'keep') {
+      if (total <= colH - L.y + .5) {}
+      else if (total <= colH) L.nextCol();
+      else if (o.cols > 1 && total <= colH * o.cols * .96) { if (!L.fresh()) L.newPage(); }
+      else if (L.y > 0 && headPair > colH - L.y) L.nextCol();
+    } else if (L.y > 0 && headPair > colH - L.y) L.nextCol();
+    starts.push(L.pages.length - 1);
+    for (const it of items) { if (it.brk) L.nextCol(); else L.place(it); }
+  }
+  L.trim();
+  // obsah
+  const coverN = o.cover ? 1 : 0;
+  const tocLayout = nums => {
+    const T = makeLayout(o.cols, colH, measure);
+    const hd = `<div class="pb toc-h">Obsah</div>`; T.place({html: hd, h: measure(hd)});
+    const row = (s, n) => `<div class="toc-row"><span class="tt">${esc(P(s).title || 'Bez názvu')}${P(s).artist ? ` <small>– ${esc(P(s).artist)}</small>` : ''}</span><span class="pg">${n}</span></div>`;
+    const rh = measure(row(list[0], 888));
+    list.forEach((s, i) => T.place({html: row(s, nums ? nums[i] : 888), h: rh}));
+    T.trim(); return T.pages;
+  };
+  let tocPages = [];
+  if (o.toc && list.length) {
+    const n0 = tocLayout(null).length;
+    tocPages = tocLayout(starts.map(i => coverN + n0 + i + 1));
+  }
+  const all = [];
+  if (o.cover) all.push({cover: true});
+  all.push(...tocPages, ...L.pages);
+  meas.remove();
+  const pad = `padding:${M}mm ${M}mm 0`;
+  pagesEl.innerHTML = all.map((pg, i) => pg.cover
+    ? `<div class="page" style="width:${W}mm;height:${H - .3}mm;${pad}"><div class="cover"><h1>${esc(o.title || 'Zpěvník')}</h1><p>${list.length} písní · ${new Date().toLocaleDateString('cs-CZ')}</p></div></div>`
+    : `<div class="page" style="width:${W}mm;height:${H - .3}mm;${pad}"><div class="pcols" style="gap:${G}mm;height:${colHmm}mm">${pg.cols.map(c => `<div class="pcol">${c.join('')}</div>`).join('')}</div><div class="pfoot" style="bottom:${M * .55}mm">${i + 1}</div></div>`).join('');
+  $('#pinfo').textContent = `${all.length} ${all.length === 1 ? 'strana' : all.length < 5 ? 'strany' : 'stran'} · ${list.length} písní`;
+  pv.scrollTop = 0;
+}
+
+/* ============ modální okna ============ */
+let modalHandler = null;
+function modal(html, handler) {
+  const m = $('#modal'); m.innerHTML = `<div class="mbox">${html}</div>`; m.hidden = false; modalHandler = handler;
+}
+function closeModal() { if (BA.cur && BA.cur.editor) bassStop(); const m = $('#modal'); m.hidden = true; m.innerHTML = ''; modalHandler = null; }
+$('#modal').addEventListener('click', e => {
+  if (e.target.id === 'modal' || e.target.closest('[data-act="close"]')) { closeModal(); return; }
+  modalHandler && modalHandler(e);
+});
+function dataMenu() {
+  modal(`<h3>Data – import a export</h3><div class="menu">
+    <button data-d="import" class="pri">⬆ Importovat soubory<small>ChordPro (.cho, .chopro, .crd, .pro), text s akordy nad řádky (.txt) nebo záloha (.json). Lze vybrat více souborů najednou.</small></button>
+    <button data-d="html">📱 Stáhnout aplikaci i s písněmi (.html)<small>Jeden soubor s celou aplikací a všemi písněmi – zkopíruj do mobilu nebo jiného počítače a otevři v prohlížeči. Písně se při otevření sloučí s tím, co tam už je.</small></button>
+    <button data-d="json">💾 Záloha všech písní (.json)<small>Na přenos mezi zařízeními (včetně poznámek a transpozic) – na druhém zařízení stačí importovat; novější verze písně vyhrává.</small></button>
+    <button data-d="cho">📄 Všechny písně jako ChordPro (.cho)<small>Pro jiné aplikace (OnSong, SongBook, ChordPro…)</small></button>
+  </div><div class="mfoot"><span style="font-size:12px;color:var(--muted)">Písně se ukládají jen v tomto prohlížeči – dělej si občas zálohu.</span><span class="sp"></span><button data-act="close">Zavřít</button></div>`, e => {
+    const d = e.target.closest('[data-d]')?.dataset.d; if (!d) return;
+    closeModal();
+    if (d === 'import') $('#fileIn').click();
+    else if (d === 'html') exportHTML();
+    else if (d === 'json') exportJSON();
+    else if (d === 'cho') exportCho();
+  });
+}
+function settingsModal() {
+  const st = S();
+  modal(`<h3>Nastavení</h3><div class="mcol">
+    <label>Výchozí nástroj pro akordové značky<select id="s_instr">${Object.entries(INSTR).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('')}</select></label>
+    <label>Vzhled<select id="s_theme"><option value="auto">Podle systému</option><option value="light">Světlý</option><option value="dark">Tmavý</option></select></label>
+    <label>Rychlost automatického posouvání (px/s)<input type="number" id="s_speed" min="2" max="200"></label>
+  </div>
+  <div class="checks" style="flex-direction:column;align-items:flex-start">
+    <label><input type="checkbox" id="s_czech"> Česká notace akordů (H = h, B = b / Bb)</label>
+    <label><input type="checkbox" id="s_wake"> Nezhasínat obrazovku při zobrazení písně (mobil)</label>
+  </div>
+  <div class="mfoot"><span class="sp"></span><button data-act="close">Zrušit</button><button data-act="sok" class="pri">Uložit</button></div>`, e => {
+    if (e.target.closest('[data-act="sok"]')) {
+      st.instrument = $('#s_instr').value; st.theme = $('#s_theme').value; st.scrollSpeed = Math.max(2, +$('#s_speed').value || 22);
+      st.czech = $('#s_czech').checked; st.wake = $('#s_wake').checked;
+      vCache.clear(); save(); applyTheme(); closeModal(); route();
+    }
+  });
+  $('#s_instr').value = st.instrument; $('#s_theme').value = st.theme; $('#s_speed').value = st.scrollSpeed;
+  $('#s_czech').checked = st.czech; $('#s_wake').checked = st.wake;
+}
+function applyTheme() {
+  const t = S().theme;
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+}
+
+/* ============ automatická synchronizace přes GitHub Gist ============ */
+// přístupový klíč a ID gistu jsou v samostatném klíči localStorage – nikdy se neexportují s aplikací ani se zálohou
+const SYNC_LS = 'zpevnik.sync', SYNC_FILE = 'zpevnik-sync.json';
+const SY = {cfg: {}, busy: false, again: false, timer: 0, state: 'off', msg: '', sig: ''};
+try { SY.cfg = JSON.parse(localStorage.getItem(SYNC_LS) || '{}') || {}; } catch (e) {}
+const syncSaveCfg = () => { try { localStorage.setItem(SYNC_LS, JSON.stringify(SY.cfg)); } catch (e) {} };
+const SYNC_TXT = {off: 'vypnutá', ok: 'aktuální', busy: 'probíhá…', err: 'chyba', offline: 'bez internetu – dosynchronizuje se později'};
+function syncStatus(state, msg) {
+  SY.state = state; SY.msg = msg || '';
+  const b = $('#syncBtn'); if (!b) return;
+  b.textContent = {off: '☁', ok: '☁ ✓', busy: '☁ …', err: '☁ !', offline: '☁ ⨯'}[state] || '☁';
+  b.title = 'Synchronizace: ' + SYNC_TXT[state] + (SY.msg ? ' (' + SY.msg + ')' : '');
+  b.classList.toggle('serr', state === 'err'); b.classList.toggle('sok', state === 'ok');
+  const m = $('#syncState'); if (m) m.textContent = SYNC_TXT[state] + (SY.msg ? ' – ' + SY.msg : '');
+}
+async function gh(path, opt = {}) {
+  const headers = {'Authorization': 'Bearer ' + SY.cfg.token, 'Accept': 'application/vnd.github+json'};
+  if (opt.body) headers['Content-Type'] = 'application/json';
+  const r = await fetch('https://api.github.com' + path, {method: opt.method || 'GET', body: opt.body, headers, cache: 'no-store'});
+  if (!r.ok) { const e = new Error(r.status === 401 ? 'neplatný nebo prošlý přístupový klíč' : r.status === 403 ? 'klíč nemá oprávnění „gist“' : r.status === 404 ? 'gist nenalezen' : 'GitHub odpověděl ' + r.status); e.status = r.status; throw e; }
+  return r.status === 204 ? null : r.json();
+}
+function syncPayload() {
+  const del = db.deleted || {};
+  return JSON.stringify({app: 'zpevnik', v: 1,
+    songs: db.songs.map(x => ({id: x.id, text: x.text, transpose: x.transpose || 0, updated: x.updated || 0})).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+    deleted: Object.fromEntries(Object.keys(del).sort().map(k => [k, del[k]]))});
+}
+// sloučení: u každé písně vyhrává novější verze, smazání platí, pokud je novější než poslední úprava
+function syncMerge(remote) {
+  let changed = false;
+  const del = db.deleted || (db.deleted = {});
+  for (const [id, t] of Object.entries(remote.deleted || {})) if (!(del[id] >= t)) { del[id] = t; changed = true; }
+  for (const x of remote.songs || []) {
+    if (!x || typeof x.text !== 'string' || !x.id) continue;
+    if (del[x.id] >= (x.updated || 0)) continue;
+    const ex = db.songs.find(y => y.id === x.id);
+    if (!ex) { db.songs.push({id: x.id, text: x.text, transpose: x.transpose || 0, updated: x.updated || 0}); changed = true; }
+    else if ((x.updated || 0) > (ex.updated || 0)) { ex.text = x.text; ex.transpose = x.transpose || 0; ex.updated = x.updated; changed = true; }
+  }
+  const n = db.songs.length;
+  db.songs = db.songs.filter(y => !(del[y.id] >= (y.updated || 0)));
+  if (db.songs.length !== n) changed = true;
+  for (const y of db.songs) if (del[y.id] && del[y.id] < (y.updated || 0)) delete del[y.id]; // píseň po smazání znovu upravená → platí
+  const old = Date.now() - 400 * 864e5; for (const k in del) if (del[k] < old) delete del[k];
+  return changed;
+}
+function syncRefresh() {
+  if (state.mode === 'view') { if (curSong()) renderView(true); else route(); }
+  else if (state.mode !== 'edit' && state.mode !== 'new') route();
+  renderList();
+}
+async function syncNow(manual) {
+  if (!SY.cfg.token) { syncStatus('off'); return; }
+  if (SY.busy) { SY.again = true; return; }
+  if (!navigator.onLine) { syncStatus('offline'); if (manual) toast('Jsi offline – synchronizuje se, až bude internet.'); return; }
+  SY.busy = true; syncStatus('busy');
+  try {
+    let gist = null;
+    if (SY.cfg.gistId) { try { gist = await gh('/gists/' + SY.cfg.gistId); } catch (e) { if (e.status !== 404) throw e; SY.cfg.gistId = null; } }
+    for (let page = 1; !gist && page <= 10; page++) { // nové zařízení: najdi existující gist se zpěvníkem
+      const list = await gh('/gists?per_page=100&page=' + page);
+      const g = list.find(x => x.files && x.files[SYNC_FILE]);
+      if (g) gist = await gh('/gists/' + g.id);
+      if (list.length < 100) break;
+    }
+    let remoteStr = '', remote = null;
+    if (gist) {
+      SY.cfg.gistId = gist.id; SY.cfg.url = gist.html_url;
+      const f = gist.files[SYNC_FILE];
+      if (f) remoteStr = f.truncated ? await (await fetch(f.raw_url, {cache: 'no-store'})).text() : f.content;
+      try { remote = JSON.parse(remoteStr); } catch (e) {}
+    }
+    const changed = remote ? syncMerge(remote) : false;
+    const out = syncPayload();
+    if (!gist) { const g = await gh('/gists', {method: 'POST', body: JSON.stringify({description: 'Zpěvník – synchronizace písní', public: false, files: {[SYNC_FILE]: {content: out}}})}); SY.cfg.gistId = g.id; SY.cfg.url = g.html_url; }
+    else if (out !== remoteStr) await gh('/gists/' + gist.id, {method: 'PATCH', body: JSON.stringify({files: {[SYNC_FILE]: {content: out}}})});
+    SY.sig = syncSig();
+    if (changed) { save(true); syncRefresh(); }
+    SY.cfg.last = Date.now();
+    syncStatus('ok', 'naposledy ' + new Date().toLocaleTimeString('cs-CZ', {hour: '2-digit', minute: '2-digit'}));
+    if (manual) toast(changed ? 'Synchronizováno – písně aktualizovány' : 'Synchronizováno, vše je aktuální');
+  } catch (e) {
+    syncStatus(navigator.onLine ? 'err' : 'offline', e.message);
+    if (manual || e.status === 401) toast('Synchronizace selhala: ' + e.message);
+  } finally {
+    SY.busy = false; syncSaveCfg();
+    if (SY.again) { SY.again = false; syncSchedule(800); }
+  }
+}
+const syncSig = () => db.songs.length + ':' + db.songs.reduce((a, x) => a + (x.updated || 0) + (x.transpose || 0), 0) + ':' + Object.keys(db.deleted || {}).length;
+function syncSchedule(ms) { if (!SY.cfg.token) return; clearTimeout(SY.timer); SY.timer = setTimeout(() => syncNow(false), ms); }
+function syncOnSave() { if (SY.cfg.token && syncSig() !== SY.sig) syncSchedule(3000); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncSchedule(400); });
+addEventListener('online', () => syncSchedule(400));
+addEventListener('offline', () => SY.cfg.token && syncStatus('offline'));
+setInterval(() => { if (document.visibilityState === 'visible') syncNow(false); }, 5 * 60 * 1000);
+function syncModal() {
+  const on = !!SY.cfg.token;
+  modal(`<h3>☁ Synchronizace písní</h3>
+    ${on ? `<p>Stav: <b id="syncState"></b></p>
+      <p style="font-size:13px;color:var(--muted)">Písně se ukládají do tvého tajného gistu na GitHubu${SY.cfg.url ? ` (<a href="${esc(SY.cfg.url)}" target="_blank" rel="noopener">otevřít</a> – je tam i historie všech verzí)` : ''}.
+      Synchronizuje se samo: při spuštění, chvíli po každé změně, při návratu do aplikace a každých 5 minut. Bez internetu se počká.</p>`
+    : `<p style="font-size:14px">Písně se budou samy synchronizovat mezi všemi zařízeními přes tajný gist na tvém GitHubu.</p>
+      <ol style="font-size:14px;padding-left:20px;line-height:1.5">
+        <li>Přihlas se na GitHub a otevři <a href="https://github.com/settings/tokens/new?scopes=gist&description=Zp%C4%9Bvn%C3%ADk" target="_blank" rel="noopener">vytvoření přístupového klíče</a>
+          (je předvyplněné jen oprávnění <b>gist</b>; „Expiration“ nastav třeba na „No expiration“) a dej <i>Generate token</i>.</li>
+        <li>Klíč (začíná <code>ghp_</code>) zkopíruj a vlož sem:</li>
+      </ol>
+      <input type="password" id="syTok" placeholder="ghp_…" autocomplete="off" style="width:100%;font-family:ui-monospace,Menlo,monospace">
+      <p style="font-size:12px;color:var(--muted)">Na dalších zařízeních vlož stejný klíč – aplikace si gist najde sama. Klíč zůstane jen v tomto zařízení (neexportuje se se zálohou ani s aplikací).
+      Tajný gist není veřejně dohledatelný, ale kdo by znal jeho přesnou adresu, mohl by ho číst.</p>`}
+    <div class="mfoot">${on ? '<button data-act="syoff" class="danger">Odpojit</button>' : ''}<span class="sp"></span><button data-act="close">Zavřít</button>
+      ${on ? '<button data-act="synow" class="pri">Synchronizovat teď</button>' : '<button data-act="syon" class="pri">Připojit</button>'}</div>`, async e => {
+    const a = e.target.closest('[data-act]')?.dataset.act;
+    if (a === 'synow') syncNow(true);
+    else if (a === 'syoff') { if (!confirm('Odpojit synchronizaci na tomto zařízení? Písně tu zůstanou, gist na GitHubu taky.')) return; SY.cfg = {}; syncSaveCfg(); syncStatus('off'); closeModal(); }
+    else if (a === 'syon') {
+      const t = $('#syTok').value.trim(); if (!t) return $('#syTok').focus();
+      SY.cfg = {token: t}; syncSaveCfg(); closeModal();
+      await syncNow(true);
+      if (SY.state === 'err' && /klíč/.test(SY.msg)) { SY.cfg = {}; syncSaveCfg(); syncStatus('off'); }
+    }
+  });
+  syncStatus(SY.state, SY.msg);
+}
+
+/* ============ směrování a události ============ */
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1)); let m;
+  stopScroll();
+  if ((m = h.match(/^s=(.+)$/)) && db.songs.some(s => s.id === m[1])) {
+    if (state.id !== m[1]) state.annot = false;
+    state.mode = 'view'; state.id = m[1]; renderView(false);
+  } else if ((m = h.match(/^e=(.+)$/)) && db.songs.some(s => s.id === m[1])) {
+    state.mode = 'edit'; state.id = m[1]; renderEdit(false);
+  } else if (h === 'new') {
+    state.mode = 'new'; state.id = null; renderEdit(true);
+  } else {
+    state.mode = 'list'; state.id = null;
+    $('#main').innerHTML = `<div class="welcome"><h2>Vyber píseň vlevo</h2>
+      <p>Nová píseň: <b>＋ Nová</b> – text v ChordPro formátu, nebo vlož text s akordy nad řádky a klikni na <b>⇄ převést</b>.</p>
+      <p>V písni můžeš transponovat (−/+), zobrazit akordové značky pro kytaru, ukulele, buzuki, mandolínu… (klikem na značku přepneš jiný hmat) a v režimu <b>✎ Poznámka</b> připisovat poznámky k řádkům.</p>
+      <p><b>🖨 Tisk / PDF</b> rozloží písně na stránky tak, aby se sloky ani krátké písně nedělily, a přidá obsah s čísly stran.</p>
+      <p>Přenos do mobilu: <b>⇅ Data → Stáhnout aplikaci i s písněmi</b>.</p></div>`;
+  }
+  document.body.classList.toggle('in-song', state.mode !== 'list');
+  renderList();
+  wake(state.mode === 'view');
+}
+window.addEventListener('hashchange', () => {
+  if (editDirty && !confirm('Zahodit neuložené změny?')) { editDirty = false; }
+  editDirty = false; route();
+});
+$('#q').addEventListener('input', renderList);
+$('#list').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) location.hash = 's=' + b.dataset.id; });
+$('#bar').addEventListener('click', e => {
+  const a = e.target.closest('[data-act]')?.dataset.act;
+  if (a === 'new') location.hash = 'new';
+  else if (a === 'data') dataMenu();
+  else if (a === 'print') printDialog(null);
+  else if (a === 'settings') settingsModal();
+  else if (a === 'sync') syncModal();
+});
+$('#fileIn').addEventListener('change', e => { const f = [...e.target.files]; e.target.value = ''; if (f.length) importFiles(f); });
+$('#main').addEventListener('change', e => {
+  if (e.target.dataset.act === 'instr') { S().instrument = e.target.value; save(); renderView(true); }
+  else if (e.target.dataset.act === 'bpat') {
+    if (e.target.value) {
+      const pr = BASS_PRESETS.find(x => x[0] === e.target.value);
+      setSongDirective(curSong(), 'x_bass_pattern', e.target.value);
+      if (pr && pr[3]) setSongDirective(curSong(), 'x_swing', 'ano');
+      renderView(true);
+    }
+    else $('[data-act="bpatin"]').focus();
+  }
+  else if (e.target.dataset.act === 'binstr') { S().bassInstr = e.target.value; save(); renderView(true); }
+  else if (e.target.dataset.act === 'bpos') { S().bassPos = e.target.value; save(); renderView(true); }
+  else if (e.target.dataset.act === 'bfills') { S().bassFills = e.target.checked; save(); renderView(true); }
+  else if (e.target.dataset.act === 'bswing') { setSongDirective(curSong(), 'x_swing', e.target.checked ? 'ano' : 'ne'); }
+  else if (e.target.dataset.act === 'bsound') { S().bassSound = e.target.value; save(); }
+  else if (e.target.dataset.act === 'bclick') { S().bassClick = e.target.checked; save(); }
+  else if (e.target.dataset.act === 'bloop') { S().bassLoop = e.target.checked; save(); }
+  else if (e.target.dataset.act === 'btempo') { const v = Math.max(30, Math.min(300, parseInt(e.target.value) || 90)); setSongDirective(curSong(), 'tempo', v); renderView(true); }
+  else if (e.target.dataset.act === 'bpatin') {
+    const v = e.target.value.replace(/[{}\n]/g, ' ').trim();
+    if (v) { setSongDirective(curSong(), 'x_bass_pattern', v); renderView(true); }
+  }
+});
+$('#main').addEventListener('click', e => {
+  const ins = e.target.closest('[data-ins]');
+  if (ins) { editInsert(ins.dataset.ins); return; }
+  const actEl = e.target.closest('[data-act]'), a = actEl?.dataset.act;
+  const song = curSong(), st = S();
+  if (a) {
+    if (a === 'instr' || a === 'bfills' || a === 'bswing' || a === 'bsound' || a === 'bclick' || a === 'bloop' || a === 'btempo') return;
+    if (a === 'bplayall') { BA.cur ? bassStop() : playSong(song); return; }
+    if (a === 'bplay' || a === 'bedit') {
+      const src = +actEl.closest('.btw').dataset.src;
+      if (a === 'bedit') { bassStop(); btabModal(song, src); }
+      else if (BA.cur && $('.btw.playing') && +$('.btw.playing').dataset.src === src && !$('[data-act="bplayall"].on')) bassStop();
+      else playLine(song, src);
+      return;
+    }
+    if (a === 'back') location.hash = '';
+    else if (a === 'tr-' || a === 'tr+') { song.transpose = (((song.transpose || 0) + (a === 'tr+' ? 1 : -1)) + 17) % 12 - 5; song.updated = Date.now(); save(); renderView(true); }
+    else if (a === 'tg-diagrams') { st.diagrams = !st.diagrams; save(); renderView(true); }
+    else if (a === 'tg-bass') { st.bass = !st.bass; if (st.bass) st.chords = true; save(); renderView(true); }
+    else if (a === 'annot') { state.annot = !state.annot; if (state.annot && !st.notes) st.notes = true; renderView(true); }
+    else if (a === 'scroll') scr.on ? stopScroll() : startScroll();
+    else if (a === 'edit') location.hash = 'e=' + song.id;
+    else if (a === 'more') moreMenu();
+    else if (a === 'esave') editSave();
+    else if (a === 'ecancel') { if (editDirty && !confirm('Zahodit neuložené změny?')) return; editDirty = false; location.replace(state.mode === 'new' ? '#' : '#s=' + state.id); }
+    return;
+  }
+  const dg = e.target.closest('.dg[data-chord]');
+  if (dg && state.mode === 'view') {
+    const k = st.instrument + '|' + dg.dataset.chord, n = voicings(dg.dataset.chord, st.instrument).length;
+    st.voicing[k] = ((st.voicing[k] || 0) + 1) % n; save(); renderView(true); return;
+  }
+  const bl = e.target.closest('.btab.bline');
+  if (bl && state.mode === 'view') { const ln = bl.closest('[data-src]'); if (ln) (bl.classList.contains('custom') ? btabModal : barsModal)(song, +ln.dataset.src); return; }
+  if (state.mode === 'view' && state.annot) {
+    const note = e.target.closest('[data-note]');
+    if (note) { noteModal(song, null, +note.dataset.note); return; }
+    const ln = e.target.closest('[data-src]');
+    if (ln) noteModal(song, +ln.dataset.src, null);
+  }
+});
+$('#scrollCtl').addEventListener('click', e => {
+  const a = e.target.closest('[data-sc]')?.dataset.sc; if (!a) return;
+  if (a === 'stop') return stopScroll();
+  const st = S(); st.scrollSpeed = Math.max(2, Math.min(200, st.scrollSpeed + (a === '+' ? (st.scrollSpeed >= 30 ? 5 : 2) : (st.scrollSpeed > 30 ? -5 : -2))));
+  $('#scSpeed').textContent = st.scrollSpeed; save();
+});
+$('#main').addEventListener('wheel', () => { /* ruční posun nevadí */ }, {passive: true});
+$('#printView').addEventListener('click', e => {
+  const a = e.target.closest('[data-pa]')?.dataset.pa; if (!a) return;
+  if (a === 'print') window.print();
+  else { $('#printView').hidden = true; $('#printView').innerHTML = ''; if (a === 'back') printDialog(null); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!$('#modal').hidden) closeModal();
+    else if (!$('#printView').hidden) { $('#printView').hidden = true; $('#printView').innerHTML = ''; }
+    else if (scr.on) stopScroll();
+  } else if (e.key === ' ' && state.mode === 'view' && $('#modal').hidden && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+    e.preventDefault(); scr.on ? stopScroll() : startScroll();
+  }
+});
+
+/* ============ start ============ */
+load(); applyTheme(); route();
+SY.sig = ''; if (SY.cfg.token) { syncStatus(navigator.onLine ? 'busy' : 'offline'); syncSchedule(600); }
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
