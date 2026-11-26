@@ -553,7 +553,7 @@ function lyricHTML(parts, o) {
 }
 function notesHTML(notes, o) {
   if (!notes || !notes.length) return '';
-  const bass = o.chords ? notes.filter(n => n.bass).map(n => `<div class="bassln" data-note="${n.src}">${esc(n.text)}</div>`).join('') : '';
+  const bass = o.chords || o.bass ? notes.filter(n => n.bass).map(n => `<div class="bassln" data-note="${n.src}">${esc(n.text)}</div>`).join('') : '';
   const nn = o.notes ? notes.filter(n => !n.bass) : [];
   return (nn.length ? '<div class="notes">' + nn.map(n => `<span class="note" data-note="${n.src}">${esc(n.text)}</span>`).join('') + '</div>' : '') + bass;
 }
@@ -1277,7 +1277,7 @@ function renderList() {
 
 /* ============ zobrazení písně ============ */
 const curSong = () => db.songs.find(s => s.id === state.id);
-function viewOpts(song) { const st = S(); return {tr: song.transpose || 0, chords: st.chords, notes: st.notes, diagrams: st.diagrams, instrument: st.instrument, bass: st.bass && st.chords, bassPat: bassPatternOf(P(song)), bassPos: st.bassPos, bassInstr: st.bassInstr, bassWidth: innerWidth < 600 ? Math.max(26, Math.floor((innerWidth - 84) / (S().font * .6 * .58))) : 70}; }
+function viewOpts(song) { const st = S(); return {tr: song.transpose || 0, chords: st.chords, notes: st.notes, diagrams: st.diagrams, instrument: st.instrument, bass: st.bass, bassPat: bassPatternOf(P(song)), bassPos: st.bassPos, bassInstr: st.bassInstr, bassWidth: innerWidth < 600 ? Math.max(26, Math.floor((innerWidth - 84) / (S().font * .6 * .58))) : 70}; }
 function setSongDirective(song, name, value) {
   const lines = song.text.split('\n');
   const i = lines.findIndex(l => { const d = l.match(DIR_RE); return d && d[1].toLowerCase() === name; });
@@ -1320,7 +1320,7 @@ function renderView(keepScroll) {
   </div>
   <div class="song${state.annot ? ' annot' : ''}" id="songBody" style="font-size:${st.font}px">
     ${state.annot ? '<div class="annot-tip">Klikni na řádek, ke kterému chceš připsat poznámku (např. „stopka“, „nehraju“, „zpívá Jana“). Kliknutím na existující poznámku ji upravíš.</div>' : ''}
-    ${st.bass && st.chords ? bassBarHTML(song) : ''}
+    ${st.bass ? bassBarHTML(song) : ''}
     ${songHTML(P(song), viewOpts(song))}
   </div>`;
   if (keepScroll) main.scrollTop = top; else main.scrollTop = 0;
@@ -1346,7 +1346,7 @@ function moreMenu() {
     if (m === 'edit') location.hash = 'e=' + song.id;
     else if (m === 'chords') { st.chords = !st.chords; save(); renderView(true); }
     else if (m === 'notes') { st.notes = !st.notes; save(); renderView(true); }
-    else if (m === 'bass') { st.bass = !st.bass; if (st.bass) st.chords = true; save(); renderView(true); }
+    else if (m === 'bass') { st.bass = !st.bass; save(); renderView(true); }
     else if (m === 'tr0') { song.transpose = 0; save(); renderView(true); }
     else if (m === 'print') printDialog([song.id]);
     else if (m === 'cho') download((P(song).title || 'pisen').replace(/[\\/:*?"<>|]/g, '') + '.cho', song.text, 'text/plain;charset=utf-8');
@@ -1655,7 +1655,7 @@ function buildPrint(o, ids) {
   // písně
   const L = makeLayout(o.cols, colH, measure), starts = [];
   for (const s of list) {
-    const p = P(s), so = {tr: s.transpose || 0, chords: o.chords, notes: o.notes, diagrams: o.diagrams, instrument: S().instrument, print: true, bass: o.bass && o.chords, bassPat: bassPatternOf(P(s)), bassPos: S().bassPos, bassInstr: S().bassInstr, bassWidth: Math.floor(colW / (o.font * .68 * .6 * 25.4 / 72)) - 3};
+    const p = P(s), so = {tr: s.transpose || 0, chords: o.chords, notes: o.notes, diagrams: o.diagrams, instrument: S().instrument, print: true, bass: o.bass, bassPat: bassPatternOf(P(s)), bassPos: S().bassPos, bassInstr: S().bassInstr, bassWidth: Math.floor(colW / (o.font * .68 * .6 * 25.4 / 72)) - 3};
     const head = `<div class="pb ps-head">${headHTML(p, so)}${so.diagrams && so.chords ? diagramsHTML(uniqueChords(p, so.tr), so.instrument) : ''}</div>`;
     const items = [{html: head, h: measure(head)}];
     for (const b of p.blocks) {
@@ -1962,7 +1962,7 @@ $('#main').addEventListener('click', e => {
     if (a === 'back') location.hash = '';
     else if (a === 'tr-' || a === 'tr+') { song.transpose = (((song.transpose || 0) + (a === 'tr+' ? 1 : -1)) + 17) % 12 - 5; song.updated = Date.now(); save(); renderView(true); }
     else if (a === 'tg-diagrams') { st.diagrams = !st.diagrams; save(); renderView(true); }
-    else if (a === 'tg-bass') { st.bass = !st.bass; if (st.bass) st.chords = true; save(); renderView(true); }
+    else if (a === 'tg-bass') { st.bass = !st.bass; save(); renderView(true); }
     else if (a === 'annot') { state.annot = !state.annot; if (state.annot && !st.notes) st.notes = true; renderView(true); }
     else if (a === 'scroll') scr.on ? stopScroll() : startScroll();
     else if (a === 'edit') location.hash = 'e=' + song.id;
