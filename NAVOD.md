@@ -69,7 +69,9 @@ doplní se na začátek akord, který pokračuje z předchozího řádku – ozn
 `1` kořen, `3` tercie, `5` kvinta, `7` septima, `8` oktáva, `5,` = o oktávu níž, `>` = přechodový tón k dalšímu akordu, `-` = drž.
 Uloží se do písně jako `{x_bass_pattern: 1 - 5, -}`.
 Vzory jsou rozdělené do skupin **Základní**, **Walking** (rozklady, stupnice, chromatické přechody, dvoutaktové varianty),
-**Blues a boogie** (boogie-woogie v osminách, shuffle, blues walking, pomalé a mollové blues) a **Valčík**.
+**Blues a boogie** (boogie-woogie v osminách, shuffle, blues walking, pomalé a mollové blues),
+**Swing a ragtime** (two-beat, charleston, ragtime, stride, swing walking – zapnou swing), **Polka (2/4)**
+(um-pa kořen–kvinta / tercie, dechovka – nastaví písni takt `{time: 2/4}`; běh do dalšího akordu jde přes poslední dva takty) a **Valčík**.
 Ve vlastním vzoru navíc: `2` `4` `6` stupně, `b`/`#` = o půltón níž/výš (`1 #2 3 5`), `>5` = přechod přes kvintu dalšího akordu,
 `>s` = celým tónem k dalšímu akordu, `|` = střídání variant takt po taktu (`1 2 3 5 | 6 5 3 >`).
 Vzor s 8 kroky se hraje v osminách. Zaškrtávátko **swing** (uloží se do písně jako `{x_swing: ano}`) hraje osminy houpavě
